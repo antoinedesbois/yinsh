@@ -10,4 +10,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 add_executable(Yinsh main.cpp)
 
-target_link_libraries(Yinsh benchmark)
+if(UNIX AND NOT APPLE)
+  target_link_libraries(Yinsh benchmark pthread)
+else()
+  target_link_libraries(Yinsh benchmark)
+endif()
