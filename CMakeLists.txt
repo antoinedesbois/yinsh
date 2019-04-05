@@ -33,5 +33,6 @@ if(UNIX AND NOT APPLE)
   target_link_libraries(Yinsh benchmark pthread)
 else()
   target_link_libraries(Yinsh benchmark)
-  target_include_directories(Yinsh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
+
+target_include_directories(Yinsh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
