@@ -15,6 +15,49 @@
 #include <time.h>
 #include <stdio.h> /* printf, scanf, puts, NULL */
 
+void randomPos( char& c ) {}
+
+// 5 ring for each color
+auto generateRandomStartingBoard() -> Board
+{
+  std::array<int, num_ring * 2> randPos;
+  for( auto& r : randPos )
+  {
+    int randIdx = rand() % Board::num_pos;
+    while( std::find( randPos.begin(), randPos.end(), randIdx ) !=
+           randPos.end() )
+    {
+      randIdx = rand() % Board::num_pos;
+    }
+
+    r = randIdx;
+  }
+
+  Board b;
+  for( auto& pos : randPos )
+  {
+    b.setRing( pos );
+  }
+
+  return b;
+}
+
+auto generateRandomStartingBoard2() -> Board
+{
+  const unsigned seed =
+      std::chrono::system_clock::now().time_since_epoch().count();
+  std::shuffle( begin( rand_num ), end( rand_num ),
+                std::default_random_engine( seed ) );
+
+  Board b;
+  for( int i = 0; i < num_ring * 2; ++i )
+  {
+    b.setRing( rand_num[i] );
+  }
+
+  return b;
+}
+
 auto generateRandomBoard() -> Board
 {
   // generate random number of ring
@@ -23,11 +66,11 @@ auto generateRandomBoard() -> Board
   std::vector<int> ringPos( numBlackRing + numWhiteRing );
   for( auto& p : ringPos )
   {
-    int randIdx = rand() % num_pos;
+    int randIdx = rand() % Board::num_pos;
     while( std::find( ringPos.begin(), ringPos.end(), randIdx ) !=
            ringPos.end() )
     {
-      randIdx = rand() % num_pos;
+      randIdx = rand() % Board::num_pos;
     }
 
     p = randIdx;
@@ -38,11 +81,11 @@ auto generateRandomBoard() -> Board
   std::vector<int> puckPos( numPuck );
   for( auto& p : puckPos )
   {
-    int randIdx = rand() % num_pos;
+    int randIdx = rand() % Board::num_pos;
     while( std::find( puckPos.begin(), puckPos.end(), randIdx ) !=
            puckPos.end() )
     {
-      randIdx = rand() % num_pos;
+      randIdx = rand() % Board::num_pos;
     }
 
     p = randIdx;
@@ -74,7 +117,7 @@ std::vector<Board> getSuccessors( Board b, Color color )
   successors.reserve( 100 );
 
   bool isFirstHalf = true;
-  for( int i = 0; i < num_pos / 2; ++i )
+  for( int i = 0; i < Board::num_pos / 2; ++i )
   {
     if( ( isFirstHalf &&
           ( b.m_board[i] &= static_cast<char>( Mask::first_ring ) ) ) ||
@@ -102,7 +145,7 @@ int evaluate( Board b, Color color )
 {
   bool isFirstHalf = true;
   int value = 0;
-  for( int i = 0; i < num_pos / 2; ++i )
+  for( int i = 0; i < Board::num_pos / 2; ++i )
   {
     if( ( isFirstHalf &&
           ( b.m_board[i] &= static_cast<char>( Mask::first_puck ) ) ) ||

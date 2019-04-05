@@ -9,13 +9,12 @@
 
 #include <stdlib.h>
 #include <time.h>
-#include <stdio.h> 
+#include <stdio.h>
 
 namespace
 {
-  const int num_pos = 85;  // 85 pos, 2 pos per char
   const int num_ring = 5;
-  std::array<int, num_pos> rand_num = {
+  std::array<int, 85> rand_num = {
       1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
       18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
@@ -240,6 +239,7 @@ enum class Mask : char
 
 struct Board
 {
+  constexpr static int num_pos = 85;
   bool hasRing( const int pos )
   {
     assert( pos >= 0 && pos < num_pos * 2 );
@@ -323,50 +323,8 @@ struct Board
 
   // char contains 2 pos
   // Bit: 1 -> ring, 2 -> puck, 3 -> color, 4 -> nothing
-  std::array<char, num_pos / 2> m_board{0};
+  std::array<char, num_pos / 2> m_board{
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 };
-
-void randomPos( char& c ) {}
-
-// 5 ring for each color
-auto generateRandomStartingBoard() -> Board
-{
-  std::array<int, num_ring * 2> randPos;
-  for( auto& r : randPos )
-  {
-    int randIdx = rand() % num_pos;
-    while( std::find( randPos.begin(), randPos.end(), randIdx ) !=
-           randPos.end() )
-    {
-      randIdx = rand() % num_pos;
-    }
-
-    r = randIdx;
-  }
-
-  Board b;
-  for( auto& pos : randPos )
-  {
-    b.setRing( pos );
-  }
-
-  return b;
-}
-
-auto generateRandomStartingBoard2() -> Board
-{
-  const unsigned seed =
-      std::chrono::system_clock::now().time_since_epoch().count();
-  std::shuffle( begin( rand_num ), end( rand_num ),
-                std::default_random_engine( seed ) );
-
-  Board b;
-  for( int i = 0; i < num_ring * 2; ++i )
-  {
-    b.setRing( rand_num[i] );
-  }
-
-  return b;
-}
-
 
