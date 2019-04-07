@@ -8,6 +8,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
+# Setup testing
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIR})
+
+# Add test cpp file
+add_executable(runUnitTests
+    test.cpp
+)
+
+# Link test executable against gtest & gtest_main
+target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY})
+target_include_directories(runUnitTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_test(
+    NAME runUnitTests
+    COMMAND runUnitTests
+)
+
 add_executable(Yinsh main.cpp)
 
 if(UNIX AND NOT APPLE)
@@ -15,3 +34,5 @@ if(UNIX AND NOT APPLE)
 else()
   target_link_libraries(Yinsh benchmark)
 endif()
+
+target_include_directories(Yinsh PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
