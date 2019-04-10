@@ -415,22 +415,75 @@ namespace
           {62, 53, 44, 35, 26, 18},
           {61, 51, 41, 31, 21, 12, 4}},
       // 70
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
+      std::vector<std::vector<short>>{{70, 69, 68, 67, 66},
+                                      {72, 73},
+                                      {78, 83},
+                                      {79},
+                                      {63, 54, 45, 36, 27},
+                                      {62, 52, 42, 32, 22, 13, 5}},
+      std::vector<std::vector<short>>{{71, 70, 69, 68, 67, 66},
+                                      {73},
+                                      {79, 84},
+                                      {80},
+                                      {64, 55, 46, 37},
+                                      {63, 53, 43, 33, 23, 14, 6, 0}},
+      std::vector<std::vector<short>>{{72, 71, 70, 69, 68, 67, 66},
+                                      {80},
+                                      {65, 56},
+                                      {64, 54, 44, 34, 24, 15, 7, 1}},
+      std::vector<std::vector<short>>{{75, 76, 77, 78, 79, 80},
+                                      {67, 59, 50, 41, 32, 23, 15, 8, 3},
+                                      {66, 57, 47}},
+      std::vector<std::vector<short>>{{74},
+                                      {75, 76, 77, 78, 79, 80},
+                                      {81},
+                                      {68, 60, 51, 42, 33, 24, 16, 9},
+                                      {67, 58, 58, 38, 28}},
       // 75
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
+      std::vector<std::vector<short>>{{75, 74},
+                                      {81},
+                                      {82},
+                                      {77, 78, 79, 80},
+                                      {69, 61, 52, 43, 34, 25, 17, 10},
+                                      {68, 59, 49, 39, 29, 19}},
+      std::vector<std::vector<short>>{
+          {76, 75, 74},
+          {78, 79, 80},
+          {82},
+          {83},
+          {70, 62, 53, 44, 35, 26, 18},
+          {69, 60, 50, 40, 30, 20, 11}},
+      std::vector<std::vector<short>>{
+          {77, 76, 75, 74},
+          {79, 80},
+          {83},
+          {84},
+          {71, 63, 54, 45, 36, 27},
+          {70, 61, 51, 41, 31, 21, 12, 4}},
+      std::vector<std::vector<short>>{
+          {78, 77, 76, 75, 74},
+          {80},
+          {84},
+          {72, 64, 55, 46, 37},
+          {71, 62, 52, 42, 32, 22, 13, 5}},
+      std::vector<std::vector<short>>{{79, 78, 77, 76, 75, 74},
+                                      {73, 65, 56},
+                                      {72, 63, 53, 43, 33, 23, 14, 6, 0}},
       // 80
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}},
-      std::vector<std::vector<short>>{{}, {}, {}, {}, {}, {}}};
+      std::vector<std::vector<short>>{{82, 83, 84},
+                                      {76, 69, 61, 52, 43, 34, 25, 17, 10},
+                                      {75, 67, 58, 48, 38, 28}},
+      std::vector<std::vector<short>>{{81},
+                                      {83, 84},
+                                      {77, 70, 62, 53, 44, 35, 26, 18},
+                                      {76, 68, 59, 49, 39, 29, 19}},
+      std::vector<std::vector<short>>{{82, 81},
+                                      {84},
+                                      {78, 71, 63, 54, 45, 36, 27},
+                                      {77, 69, 60, 50, 40, 30, 20, 11}},
+      std::vector<std::vector<short>>{{83, 82, 81},
+                                      {79, 72, 64, 55, 46, 37},
+                                      {78, 70, 61, 51, 41, 31, 21, 12, 4}}};
 
 }  // namespace
 
@@ -442,25 +495,25 @@ enum class Color : char
 
 enum class Mask : char
 {
-  first_ring = 0x01,
-  first_puck = 0x02,
-  first_white_color = 0x04,
-  second_ring = 0x10,
-  second_puck = 0x20,
-  second_white_color = 0x40,
+  first_ring = 0x01,          // 0000 0001
+  first_puck = 0x02,          // 0000 0010
+  first_white_color = 0x04,   // 0000 0100
+  second_ring = 0x10,         // 0001 0000
+  second_puck = 0x20,         // 0010 0000
+  second_white_color = 0x40,  // 0100 0000
 };
 
 struct Board
 {
   constexpr static int num_pos = 85;
-  bool hasRing( const int pos )
+  bool hasRing( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
     const bool isFirstHalf = pos % 2 == 0;
 
-    return isFirstHalf ? m_board[idx] &= static_cast<char>( Mask::first_ring )
-                       : m_board[idx] &= static_cast<char>( Mask::second_ring );
+    return isFirstHalf ? m_board[idx] & static_cast<char>( Mask::first_ring )
+                       : m_board[idx] & static_cast<char>( Mask::second_ring );
   }
 
   void setRing( const int pos )
@@ -473,34 +526,53 @@ struct Board
     {
       m_board[idx] = m_board[idx] |= static_cast<char>( Mask::first_ring );
     }
-
-    m_board[idx] = m_board[idx] |= static_cast<char>( Mask::second_ring );
+    else
+    {
+      m_board[idx] = m_board[idx] |= static_cast<char>( Mask::second_ring );
+    }
   }
 
-  bool hasPuck( const int pos )
+  void removeRing( const int pos )
+  {
+    assert( hasRing( pos ) );
+
+    const int idx = std::floor( pos / 2 );
+    const bool isFirstHalf = pos % 2 == 0;
+
+    if( isFirstHalf )
+    {
+      m_board[idx] = m_board[idx] &= static_cast<char>( ~( 0x01 ) );
+    }
+    else
+    {
+      m_board[idx] = m_board[idx] &= static_cast<char>( ~( 0x10 ) );
+    }
+  }
+
+  bool hasPuck( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
     const bool isFirstHalf = pos % 2 == 0;
 
-    return isFirstHalf ? m_board[idx] &= static_cast<char>( Mask::first_puck )
-                       : m_board[idx] &= static_cast<char>( Mask::second_puck );
+    return isFirstHalf ? m_board[idx] & static_cast<char>( Mask::first_puck )
+                       : m_board[idx] & static_cast<char>( Mask::second_puck );
   }
 
-  bool hasPuck( const int pos, Color color )
+  bool hasPuck( const int pos, Color color ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
     const bool isFirstHalf = pos % 2 == 0;
 
-    return ( ( m_board[idx] &= static_cast<char>( Mask::first_white_color ) &&
+    return ( ( m_board[idx] & static_cast<char>( Mask::first_white_color ) &&
                                color == Color::white ) ||
-             ( !( m_board[idx] &=
+             ( !( m_board[idx] &
                   static_cast<char>( Mask::first_white_color ) ) &&
                color == Color::black ) ) &&
            ( isFirstHalf
-                 ? m_board[idx] &= static_cast<char>( Mask::first_puck )
-                 : m_board[idx] &= static_cast<char>( Mask::second_puck ) );
+                 ? m_board[idx] & static_cast<char>( Mask::first_puck )
+                 : m_board[idx] & static_cast<char>( Mask::second_puck ) );
   }
 
   void setPuck( const int pos )
@@ -511,13 +583,15 @@ struct Board
 
     if( isFirstHalf )
     {
-      m_board[idx] = m_board[idx] |= static_cast<char>( Mask::first_puck );
+      m_board[idx] |= static_cast<char>( Mask::first_puck );
     }
-
-    m_board[idx] = m_board[idx] |= static_cast<char>( Mask::first_puck );
+    else
+    {
+      m_board[idx] |= static_cast<char>( Mask::second_puck );
+    }
   }
 
-  Color getColor( const int pos )
+  Color getColor( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
@@ -525,11 +599,11 @@ struct Board
 
     if( isFirstHalf )
     {
-      return ( m_board[idx] &= static_cast<char>( Mask::first_white_color ) )
+      return ( m_board[idx] & static_cast<char>( Mask::first_white_color ) )
                  ? Color::white
                  : Color::black;
     }
-    return ( m_board[idx] &= static_cast<char>( Mask::second_white_color ) )
+    return ( m_board[idx] & static_cast<char>( Mask::second_white_color ) )
                ? Color::white
                : Color::black;
   }

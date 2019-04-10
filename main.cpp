@@ -131,6 +131,10 @@ std::vector<Board> getSuccessors( Board b, Color color )
       if( currentColor == color )
       {
         // todo get positions
+        Board successorBoard (b);
+        successorBoard.setPuck(i);
+
+        successors.push_back(successorBoard);
       }
     }
 
