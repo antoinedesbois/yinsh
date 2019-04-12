@@ -591,6 +591,22 @@ struct Board
     }
   }
 
+  void removePuck( const int pos )
+  {
+    assert(pos >= 0 && pos < num_pos * 2 );
+    const int idx = std::floor( pos / 2);
+    const bool isFirstHalf = pos % 2 == 0;
+
+    if ( isFirstHalf )
+    {
+      m_board[idx] &= static_cast<char>( ~( 0x02) );
+    }
+    else
+    {
+      m_board[idx] &= static_cast<char>( ~( 0x20) );
+    }
+  }
+
   Color getColor( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );

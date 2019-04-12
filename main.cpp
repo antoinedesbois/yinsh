@@ -133,6 +133,7 @@ std::vector<Board> getSuccessors( Board b, Color color )
         // todo get positions
         Board successorBoard (b);
         successorBoard.setPuck(i);
+        successorBoard.removeRing(i);
 
         successors.push_back(successorBoard);
       }
