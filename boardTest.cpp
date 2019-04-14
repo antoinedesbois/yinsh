@@ -5,7 +5,7 @@
 TEST( emptyBoard, shouldBeEmpty )
 {
   Board board;
-  for( int i = 0; i < Board::num_pos; ++i )
+  for( int i = 0; i < 85; ++i )
   {
     EXPECT_FALSE( board.hasPuck( i ) );
     EXPECT_FALSE( board.hasRing( i ) );
@@ -93,6 +93,27 @@ TEST( setEvenAndOddRingSameByte, asExpected )
     if( i == evenPos || i == oddPos ) continue;
     EXPECT_FALSE( b.hasRing( i ) );
   }
+}
+
+TEST( removeRingOdd, asExpected)
+{
+  Board b;
+  b.setRing(0);
+  EXPECT_TRUE(b.hasRing(0));
+  b.removeRing(0);
+  EXPECT_FALSE(b.hasRing(0));
+}
+
+TEST( removeRingWhereNone, shouldCrash)
+{
+  Board b;
+  EXPECT_FALSE(b.hasRing(55));
+#ifndef NDEBUG
+  EXPECT_DEATH(b.removeRing(55), "");
+#else
+  b.removeRing(55);
+  EXPECT_FALSE(b.hasRing(55));
+#endif
 }
 
 int main( int argc, char* argv[] )

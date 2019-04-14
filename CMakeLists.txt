@@ -15,7 +15,7 @@ include_directories(${GTEST_INCLUDE_DIR})
 
 add_executable(Yinsh main.cpp)
 add_executable(runUnitTests
-    test.cpp
+    boardTest.cpp
 )
 
 target_include_directories(runUnitTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
