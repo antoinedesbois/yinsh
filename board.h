@@ -13,6 +13,13 @@
 
 namespace
 {
+  constexpr int32_t constexprCeil(float num)
+  {
+      return (static_cast<float>(static_cast<int32_t>(num)) == num)
+               ? static_cast<int32_t>(num)
+                      : static_cast<int32_t>(num) + ((num > 0) ? 1 : 0);
+  }
+
   const int num_ring = 5;
   std::array<int, 85> rand_num = {
       1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
@@ -495,6 +502,7 @@ enum class Color : char
 
 enum class Mask : char
 {
+  empty = 0x0,
   first_ring = 0x01,          // 0000 0001
   first_puck = 0x02,          // 0000 0010
   first_white_color = 0x04,   // 0000 0100
@@ -506,6 +514,20 @@ enum class Mask : char
 struct Board
 {
   constexpr static int num_pos = 85;
+  Board()
+      : m_board{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0}
+  {
+  }
+
+  char operator[]( const int i ) const
+  {
+    return m_board[i/2];
+  }
+
   bool hasRing( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
@@ -566,7 +588,7 @@ struct Board
     const bool isFirstHalf = pos % 2 == 0;
 
     return ( ( m_board[idx] & static_cast<char>( Mask::first_white_color ) &&
-                               color == Color::white ) ||
+               color == Color::white ) ||
              ( !( m_board[idx] &
                   static_cast<char>( Mask::first_white_color ) ) &&
                color == Color::black ) ) &&
@@ -593,17 +615,17 @@ struct Board
 
   void removePuck( const int pos )
   {
-    assert(pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2);
+    assert( pos >= 0 && pos < num_pos * 2 );
+    const int idx = std::floor( pos / 2 );
     const bool isFirstHalf = pos % 2 == 0;
 
-    if ( isFirstHalf )
+    if( isFirstHalf )
     {
-      m_board[idx] &= static_cast<char>( ~( 0x02) );
+      m_board[idx] &= static_cast<char>( ~( 0x02 ) );
     }
     else
     {
-      m_board[idx] &= static_cast<char>( ~( 0x20) );
+      m_board[idx] &= static_cast<char>( ~( 0x20 ) );
     }
   }
 
@@ -626,8 +648,5 @@ struct Board
 
   // char contains 2 pos
   // Bit: 1 -> ring, 2 -> puck, 3 -> color, 4 -> nothing
-  std::array<char, num_pos / 2> m_board{
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::array<char, constexprCeil(num_pos / 2.0)> m_board;
 };
-
