@@ -105,9 +105,9 @@ auto generateRandomBoard() -> Board
   return b;
 }
 
-std::vector<std::vector<short>> getMoves( const int ringPos )
+std::vector<std::vector<int>> getMoves( const int ringPos )
 {
-  return possibleMoves[ringPos];
+  return Moves::possibleMoves[ringPos];
 }
 
 // given a board, return every possible board considering it is the color's turn
@@ -116,30 +116,42 @@ std::vector<Board> getSuccessors( Board b, Color color )
   std::vector<Board> successors;
   successors.reserve( 100 );
 
-  bool isFirstHalf = true;
-  for( int i = 0; i < Board::num_pos / 2; ++i )
+  for( int i = 0; i < Board::num_pos; ++i )
   {
-    if( ( isFirstHalf &&
-          ( b.m_board[i] &= static_cast<char>( Mask::first_ring ) ) ) ||
-        ( !isFirstHalf &&
-          ( b.m_board[i] &= static_cast<char>( Mask::second_ring ) ) ) )
-    {
-      const Color currentColor =
-          ( b.m_board[i] &= static_cast<char>( Mask::first_white_color ) )
-              ? Color::white
-              : Color::black;
-      if( currentColor == color )
-      {
-        // todo get positions
-        Board successorBoard (b);
-        successorBoard.setPuck(i);
-        successorBoard.removeRing(i);
+    if( !b.hasRing( i ) ) continue;
+    if( b.getColor( i ) != color ) continue;
 
-        successors.push_back(successorBoard);
+    assert( b.hasRing( i ) && b.getColor( i ) == color );
+    for( int j = 0; i < Moves::possibleMoves[i].size(); ++i )
+    {
+      bool hasReachedPuck = false;
+      std::vector<int> puckPos;  // contains all the position where there is a
+                                 // puck on a given direction
+      for( int k = 0; j < Moves::possibleMoves[i][j].size(); ++j )
+      {
+        if( b.hasRing( Moves::possibleMoves[i][j][k] ) ) break;
+        if( b.hasPuck( Moves::possibleMoves[i][j][k] ) )
+        {
+          hasReachedPuck = true;
+          puckPos.push_back( Moves::possibleMoves[i][j][k] );
+          continue;
+        }
+
+        Board successorBoard( b );
+        successorBoard.setPuck( i );
+        successorBoard.removeRing( i );
+        successorBoard.setRing( Moves::possibleMoves[i][j][k] );
+
+        if( hasReachedPuck )
+        {
+          // TODO flip all puck
+          successors.push_back( successorBoard );
+          break;
+        }
+
+        successors.push_back( successorBoard );
       }
     }
-
-    isFirstHalf = !isFirstHalf;
   }
 
   return successors;

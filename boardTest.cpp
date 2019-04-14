@@ -5,11 +5,38 @@
 TEST( emptyBoard, shouldBeEmpty )
 {
   Board board;
-  for( int i = 0; i < 85; ++i )
+  for( int i = 0; i < Board::num_pos; ++i )
   {
     EXPECT_FALSE( board.hasPuck( i ) );
     EXPECT_FALSE( board.hasRing( i ) );
   }
+}
+
+TEST( boardCopy, asExpected )
+{
+  Board b1;
+  b1.setRing( 13 );
+  b1.setPuck( 60 );
+
+  const Board b2( b1 );
+  for( int i = 0; i < Board::num_pos; ++i )
+  {
+    EXPECT_TRUE( b1.hasRing( i ) == b2.hasRing( i ) );
+    EXPECT_TRUE( b1.hasPuck( i ) == b2.hasPuck( i ) );
+  }
+}
+
+TEST( boardOperatorEqual, asExpected )
+{
+  Board b1;
+  b1.setRing( 13 );
+  b1.setPuck( 60 );
+  Board b2( b1 );
+
+  EXPECT_TRUE(b1 == b2);
+  b2.setRing(10);
+
+  EXPECT_FALSE(b1 == b2);
 }
 
 TEST( setEvenPuck, asExpected )
@@ -95,24 +122,24 @@ TEST( setEvenAndOddRingSameByte, asExpected )
   }
 }
 
-TEST( removeRingOdd, asExpected)
+TEST( removeRingOdd, asExpected )
 {
   Board b;
-  b.setRing(0);
-  EXPECT_TRUE(b.hasRing(0));
-  b.removeRing(0);
-  EXPECT_FALSE(b.hasRing(0));
+  b.setRing( 0 );
+  EXPECT_TRUE( b.hasRing( 0 ) );
+  b.removeRing( 0 );
+  EXPECT_FALSE( b.hasRing( 0 ) );
 }
 
-TEST( removeRingWhereNone, shouldCrash)
+TEST( removeRingWhereNone, shouldCrash )
 {
   Board b;
-  EXPECT_FALSE(b.hasRing(55));
+  EXPECT_FALSE( b.hasRing( 55 ) );
 #ifndef NDEBUG
-  EXPECT_DEATH(b.removeRing(55), "");
+  EXPECT_DEATH( b.removeRing( 55 ), "" );
 #else
-  b.removeRing(55);
-  EXPECT_FALSE(b.hasRing(55));
+  b.removeRing( 55 );
+  EXPECT_FALSE( b.hasRing( 55 ) );
 #endif
 }
 
