@@ -650,3 +650,5 @@ struct Board
   // Bit: 1 -> ring, 2 -> puck, 3 -> color, 4 -> nothing
   std::array<char, constexprCeil(num_pos / 2.0)> m_board;
 };
+
+static_assert(sizeof(Board) == 43, "Size has to be 43 bytes");
