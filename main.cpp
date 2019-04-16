@@ -34,9 +34,9 @@ auto generateRandomStartingBoard() -> Board
   }
 
   Board b;
-  for( auto& pos : randPos )
+  for( int i = 0; i < randPos.size(); ++i )
   {
-    b.setRing( pos );
+    b.setRing( randPos[i], i % 2 == 0 ? Color::white : Color::black );
   }
 
   return b;
@@ -52,7 +52,7 @@ auto generateRandomStartingBoard2() -> Board
   Board b;
   for( int i = 0; i < num_ring * 2; ++i )
   {
-    b.setRing( rand_num[i] );
+    b.setRing( rand_num[i], i % 2 == 0 ? Color::white : Color::black );
   }
 
   return b;
@@ -92,20 +92,20 @@ auto generateRandomBoard() -> Board
   }
 
   Board b;
-  for( auto& pos : ringPos )
+  for( int i = 0; i < ringPos.size(); ++i )
   {
-    b.setRing( pos );
+    b.setRing( ringPos[i], i % 2 == 0 ? Color::white : Color::black );
   }
 
-  for( auto& pos : puckPos )
+  for( int i = 0; i < puckPos.size(); ++i )
   {
-    b.setPuck( pos );
+    b.setPuck( puckPos[i], i % 2 == 0 ? Color::white : Color::black );
   }
 
   return b;
 }
 
-std::vector<std::vector<int>> getMoves( const int ringPos )
+std::vector<std::vector<int>>& getMoves( const int ringPos )
 {
   return Moves::possibleMoves[ringPos];
 }
@@ -118,10 +118,8 @@ std::vector<Board> getSuccessors( Board b, Color color )
 
   for( int i = 0; i < Board::num_pos; ++i )
   {
-    if( !b.hasRing( i ) ) continue;
-    if( b.getColor( i ) != color ) continue;
+    if( !b.hasRing( i, color ) ) continue;
 
-    assert( b.hasRing( i ) && b.getColor( i ) == color );
     for( int j = 0; i < Moves::possibleMoves[i].size(); ++i )
     {
       bool hasReachedPuck = false;
@@ -138,13 +136,17 @@ std::vector<Board> getSuccessors( Board b, Color color )
         }
 
         Board successorBoard( b );
-        successorBoard.setPuck( i );
+        successorBoard.setPuck( i, color );
         successorBoard.removeRing( i );
-        successorBoard.setRing( Moves::possibleMoves[i][j][k] );
+        successorBoard.setRing( Moves::possibleMoves[i][j][k], color );
 
         if( hasReachedPuck )
         {
-          // TODO flip all puck
+          for (int p : puckPos)
+          {
+            successorBoard.flipPuck(p);
+          }
+
           successors.push_back( successorBoard );
           break;
         }
@@ -231,12 +233,21 @@ static void BM_GenerateRandomBoard( benchmark::State& state )
   }
 }
 
-static void BM_AddPuck( benchmark::State& state )
+static void BM_AddPuckWhite( benchmark::State& state )
 {
   auto b = generateRandomStartingBoard();
   for( auto _ : state )
   {
-    b.setPuck( 50 );
+    b.setPuck( 50, Color::white );
+  }
+}
+
+static void BM_AddPuckBlack( benchmark::State& state )
+{
+  auto b = generateRandomStartingBoard();
+  for( auto _ : state )
+  {
+    b.setPuck( 50, Color::black );
   }
 }
 
@@ -270,7 +281,8 @@ BENCHMARK( BM_Evaluate );
 BENCHMARK( BM_GenerateRandomStartingBoard );
 BENCHMARK( BM_GenerateRandomStartingBoard2 );
 BENCHMARK( BM_GenerateRandomBoard );
-BENCHMARK( BM_AddPuck );
+BENCHMARK( BM_AddPuckWhite );
+BENCHMARK( BM_AddPuckBlack );
 BENCHMARK( BM_GetMoves );
 
 BENCHMARK( BM_GetSuccessors );

@@ -504,15 +504,25 @@ enum class Color : char
   white
 };
 
+// 1st bit -> ring
+// 2nd bit -> puck
+// 3nd bit -> white = 1
 enum class Mask : char
 {
   empty = 0x0,
-  first_ring = 0x01,          // 0000 0001
-  first_puck = 0x02,          // 0000 0010
-  first_white_color = 0x04,   // 0000 0100
-  second_ring = 0x10,         // 0001 0000
-  second_puck = 0x20,         // 0010 0000
-  second_white_color = 0x40,  // 0100 0000
+
+  first_ring = 0x01,                                  // 0000 0001
+  first_puck = 0x02,                                  // 0000 0010
+  first_white_color = 0x04,                           // 0000 0100
+  first_white_ring = first_ring | first_white_color,  // 0000 0101
+  first_white_puck = first_puck | first_white_color,  // 0000 0110
+
+  second_ring = 0x10,                                    // 0001 0000
+  second_puck = 0x20,                                    // 0010 0000
+  second_white_color = 0x40,                             // 0100 0000
+  second_white_ring = second_ring | second_white_color,  // 0000 0101
+  second_white_puck = second_puck | second_white_color,  // 0000 0110
+
 };
 
 struct Board
@@ -547,7 +557,7 @@ struct Board
                        : m_board[idx] & static_cast<char>( Mask::second_ring );
   }
 
-  void setRing( const int pos )
+  bool hasRing( const int pos, Color color ) const
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
@@ -555,11 +565,37 @@ struct Board
 
     if( isFirstHalf )
     {
-      m_board[idx] = m_board[idx] |= static_cast<char>( Mask::first_ring );
+      return color == Color::white
+                 ? m_board[idx] == static_cast<char>( Mask::first_white_ring )
+                 : m_board[idx] == static_cast<char>( Mask::first_ring );
     }
     else
     {
-      m_board[idx] = m_board[idx] |= static_cast<char>( Mask::second_ring );
+      return color == Color::white
+                 ? m_board[idx] == static_cast<char>( Mask::second_white_ring )
+                 : m_board[idx] == static_cast<char>( Mask::second_ring );
+    }
+  }
+
+  void setRing( const int pos, Color color )
+  {
+    assert( pos >= 0 && pos < num_pos * 2 );
+    const int idx = std::floor( pos / 2 );
+    const bool isFirstHalf = pos % 2 == 0;
+
+    if( isFirstHalf )
+    {
+      m_board[idx] &= 0xf0;
+      m_board[idx] |= color == Color::white
+                          ? static_cast<char>( Mask::first_white_ring )
+                          : static_cast<char>( Mask::first_ring );
+    }
+    else
+    {
+      m_board[idx] &= 0x0f;
+      m_board[idx] |= color == Color::white
+                          ? static_cast<char>( Mask::second_white_ring )
+                          : static_cast<char>( Mask::second_ring );
     }
   }
 
@@ -606,7 +642,7 @@ struct Board
                  : m_board[idx] & static_cast<char>( Mask::second_puck ) );
   }
 
-  void setPuck( const int pos )
+  void setPuck( const int pos, Color color )
   {
     assert( pos >= 0 && pos < num_pos * 2 );
     const int idx = std::floor( pos / 2 );
@@ -614,12 +650,28 @@ struct Board
 
     if( isFirstHalf )
     {
-      m_board[idx] |= static_cast<char>( Mask::first_puck );
+      m_board[idx] &= 0xf0;
+      m_board[idx] |= color == Color::white
+                          ? static_cast<char>( Mask::first_white_puck )
+                          : static_cast<char>( Mask::first_puck );
     }
     else
     {
-      m_board[idx] |= static_cast<char>( Mask::second_puck );
+      m_board[idx] &= 0x0f;
+      m_board[idx] = color == Color::white
+                         ? static_cast<char>( Mask::second_white_puck )
+                         : static_cast<char>( Mask::second_puck );
     }
+  }
+
+  void flipPuck( const int pos )
+  {
+    assert( pos >= 0 && pos < num_pos * 2 );
+    const int idx = std::floor( pos / 2 );
+    const bool isFirstHalf = pos % 2 == 0;
+
+    isFirstHalf ? m_board[idx] ^= static_cast<char>( Mask::first_white_color )
+                : m_board[idx] ^= static_cast<char>( Mask::second_white_color );
   }
 
   void removePuck( const int pos )
