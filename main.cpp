@@ -105,60 +105,81 @@ auto generateRandomBoard() -> Board
   return b;
 }
 
-std::vector<std::vector<int>>& getMoves( const int ringPos )
+std::array<Board,26*5> getSuccessors(Board b, Color color)
 {
-  return Moves::possibleMoves[ringPos];
-}
+  std::array<Board,26*5> successors;
 
-// given a board, return every possible board considering it is the color's turn
-std::vector<Board> getSuccessors( Board b, Color color )
-{
-  std::vector<Board> successors;
-  successors.reserve( 100 );
-
-  for( int i = 0; i < Board::num_pos; ++i )
+  for (int i = 0; i < Board::num_pos; ++i)
   {
-    if( !b.hasRing( i, color ) ) continue;
-
-    for( int j = 0; i < Moves::possibleMoves[i].size(); ++i )
+    if (!b.hasRing(i, color) ) continue;
+    int j = 0;
+    while (j < 32)
     {
-      bool hasReachedPuck = false;
-      std::vector<int> puckPos;  // contains all the position where there is a
-                                 // puck on a given direction
-      for( int k = 0; j < Moves::possibleMoves[i][j].size(); ++j )
+      const int size = Moves::possibleMoves[i][j];
+      if (size < 1) break;
+      const int nextJ = j + size;
+      for (int k = 0; k < size; ++k)
       {
-        if( b.hasRing( Moves::possibleMoves[i][j][k] ) ) break;
-        if( b.hasPuck( Moves::possibleMoves[i][j][k] ) )
-        {
-          hasReachedPuck = true;
-          puckPos.push_back( Moves::possibleMoves[i][j][k] );
-          continue;
-        }
+        if (b.hasRing(Moves::possibleMoves[i][j + k + 1])) break;
 
-        Board successorBoard( b );
-        successorBoard.setPuck( i, color );
-        successorBoard.removeRing( i );
-        successorBoard.setRing( Moves::possibleMoves[i][j][k], color );
-
-        if( hasReachedPuck )
-        {
-          for (int p : puckPos)
-          {
-            successorBoard.flipPuck(p);
-          }
-
-          successors.push_back( successorBoard );
-          break;
-        }
-
-        successors.push_back( successorBoard );
       }
+
+      j = nextJ;
     }
   }
 
   return successors;
 }
 
+// given a board, return every possible board considering it is the color's turn
+//std::vector<Board> getSuccessors( Board b, Color color )
+//{
+//  std::vector<Board> successors;
+//  successors.reserve( 100 );
+//
+//  for( int i = 0; i < Board::num_pos; ++i )
+//  {
+//    if( !b.hasRing( i, color ) ) continue;
+//
+//    for( int j = 0; i < Moves::possibleMoves[i].size(); ++i )
+//    {
+//      bool hasReachedPuck = false;
+//      std::vector<int> puckPos;  // contains all the position where there is a
+//                                 // puck on a given direction
+//      for( int k = 0; j < Moves::possibleMoves[i][j].size(); ++j )
+//      {
+//        if( b.hasRing( Moves::possibleMoves[i][j][k] ) ) break;
+//        if( b.hasPuck( Moves::possibleMoves[i][j][k] ) )
+//        {
+//          hasReachedPuck = true;
+//          puckPos.push_back( Moves::possibleMoves[i][j][k] );
+//          continue;
+//        }
+//
+//        Board successorBoard( b );
+//        successorBoard.setPuck( i, color );
+//        successorBoard.removeRing( i );
+//        successorBoard.setRing( Moves::possibleMoves[i][j][k], color );
+//
+//        if( hasReachedPuck )
+//        {
+//          for (int p : puckPos)
+//          {
+//            successorBoard.flipPuck(p);
+//          }
+//
+//          successors.push_back( successorBoard );
+//          break;
+//        }
+//
+//        successors.push_back( successorBoard );
+//      }
+//    }
+//  }
+//
+//  return successors;
+//}
+//
 // given a color, check if the board is a good winning position
 int evaluate( Board b, Color color )
 {
@@ -251,14 +272,6 @@ static void BM_AddPuckBlack( benchmark::State& state )
   }
 }
 
-static void BM_GetMoves( benchmark::State& state )
-{
-  for( auto _ : state )
-  {
-    static_cast<void>( getMoves( 84 ) );
-  }
-}
-
 static void BM_Evaluate( benchmark::State& state )
 {
   Board b = generateRandomBoard();
@@ -283,8 +296,6 @@ BENCHMARK( BM_GenerateRandomStartingBoard2 );
 BENCHMARK( BM_GenerateRandomBoard );
 BENCHMARK( BM_AddPuckWhite );
 BENCHMARK( BM_AddPuckBlack );
-BENCHMARK( BM_GetMoves );
-
 BENCHMARK( BM_GetSuccessors );
 
 // disable cpu scaling
