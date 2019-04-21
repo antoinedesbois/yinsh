@@ -99,6 +99,7 @@ auto generateRandomBoard() -> Board
 
   for( int i = 0; i < puckPos.size(); ++i )
   {
+    if( b.hasRing( puckPos[i] ) ) continue;
     b.setPuck( puckPos[i], i % 2 == 0 ? Color::white : Color::black );
   }
 
@@ -120,13 +121,15 @@ std::vector<Board> getSuccessors( Board b, Color color )
   {
     if( !b.hasRing( i, color ) ) continue;
 
-    for( int j = 0; i < Moves::possibleMoves[i].size(); ++i )
+    assert( b.hasRing( i ) );
+    for( int j = 0; j < Moves::possibleMoves[i].size(); ++j )
     {
       bool hasReachedPuck = false;
       std::vector<int> puckPos;  // contains all the position where there is a
                                  // puck on a given direction
-      for( int k = 0; j < Moves::possibleMoves[i][j].size(); ++j )
+      for( int k = 0; k < Moves::possibleMoves[i][j].size(); ++k )
       {
+        assert( b.hasRing( i ) );
         if( b.hasRing( Moves::possibleMoves[i][j][k] ) ) break;
         if( b.hasPuck( Moves::possibleMoves[i][j][k] ) )
         {
@@ -136,15 +139,15 @@ std::vector<Board> getSuccessors( Board b, Color color )
         }
 
         Board successorBoard( b );
-        successorBoard.setPuck( i, color );
         successorBoard.removeRing( i );
+        successorBoard.setPuck( i, color );
         successorBoard.setRing( Moves::possibleMoves[i][j][k], color );
 
         if( hasReachedPuck )
         {
-          for (int p : puckPos)
+          for( int p : puckPos )
           {
-            successorBoard.flipPuck(p);
+            successorBoard.flipPuck( p );
           }
 
           successors.push_back( successorBoard );
@@ -162,48 +165,17 @@ std::vector<Board> getSuccessors( Board b, Color color )
 // given a color, check if the board is a good winning position
 int evaluate( Board b, Color color )
 {
-  bool isFirstHalf = true;
   int value = 0;
-  for( int i = 0; i < Board::num_pos / 2; ++i )
+  for( int i = 0; i < Board::num_pos; ++i )
   {
-    if( ( isFirstHalf &&
-          ( b.m_board[i] &= static_cast<char>( Mask::first_puck ) ) ) ||
-        ( !isFirstHalf &&
-          ( b.m_board[i] &= static_cast<char>( Mask::second_puck ) ) ) )
-    {
-      Color currentColor =
-          ( b.m_board[i] &= static_cast<char>( Mask::first_white_color ) )
-              ? Color::white
-              : Color::black;
-      if( currentColor == color )
-      {
-        value += 1;
-      }
-      else
-      {
-        value -= 1;
-      }
-    }
-    else if( ( isFirstHalf &&
-               ( b.m_board[i] &= static_cast<char>( Mask::first_ring ) ) ) ||
-             ( !isFirstHalf &&
-               ( b.m_board[i] &= static_cast<char>( Mask::second_ring ) ) ) )
-    {
-      Color currentColor =
-          ( b.m_board[i] &= static_cast<char>( Mask::first_white_color ) )
-              ? Color::white
-              : Color::black;
-      if( currentColor == color )
-      {
-        value -= 5;
-      }
-      else
-      {
-        value += 5;
-      }
-    }
-
-    isFirstHalf = !isFirstHalf;
+    if( b.hasRing( i, color ) )
+      value -= 10;
+    else if( b.hasRing( 1 ) )
+      value += 10;
+    else if( b.hasPuck( i, color ) )
+      value += 1;
+    else if( b.hasPuck( i ) )
+      value -= 1;
   }
 
   return value;
@@ -233,24 +205,6 @@ static void BM_GenerateRandomBoard( benchmark::State& state )
   }
 }
 
-static void BM_AddPuckWhite( benchmark::State& state )
-{
-  auto b = generateRandomStartingBoard();
-  for( auto _ : state )
-  {
-    b.setPuck( 50, Color::white );
-  }
-}
-
-static void BM_AddPuckBlack( benchmark::State& state )
-{
-  auto b = generateRandomStartingBoard();
-  for( auto _ : state )
-  {
-    b.setPuck( 50, Color::black );
-  }
-}
-
 static void BM_GetMoves( benchmark::State& state )
 {
   for( auto _ : state )
@@ -264,7 +218,7 @@ static void BM_Evaluate( benchmark::State& state )
   Board b = generateRandomBoard();
   for( auto _ : state )
   {
-    evaluate( b, Color::black );
+    static_cast<void>( evaluate( b, Color::black ) );
   }
 }
 
@@ -281,8 +235,6 @@ BENCHMARK( BM_Evaluate );
 BENCHMARK( BM_GenerateRandomStartingBoard );
 BENCHMARK( BM_GenerateRandomStartingBoard2 );
 BENCHMARK( BM_GenerateRandomBoard );
-BENCHMARK( BM_AddPuckWhite );
-BENCHMARK( BM_AddPuckBlack );
 BENCHMARK( BM_GetMoves );
 
 BENCHMARK( BM_GetSuccessors );
@@ -293,7 +245,7 @@ BENCHMARK( BM_GetSuccessors );
 // BENCHMARK_MAIN();
 int main( int argc, char** argv )
 {
-  srand( time( NULL ) );
+  // srand( time( NULL ) );
 
   benchmark::Initialize( &argc, argv );
   benchmark::RunSpecifiedBenchmarks();

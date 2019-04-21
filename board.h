@@ -483,11 +483,11 @@ namespace Moves
 namespace
 {
   std::array<int, 85> rand_num = {
-      1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17,
-      18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-      35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
-      52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
-      69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85};
+      0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+      34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+      51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+      68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84};
 
   constexpr int num_ring = 5;
   constexpr int32_t constexprCeil( float num )
@@ -528,188 +528,102 @@ enum class Mask : char
 struct Board
 {
   constexpr static int num_pos = 85;
-  Board()
-      : m_board{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0}
-  {
-  }
 
-  char operator[]( const int i ) const
+  // Initialize an empty board
+  Board() : m_board() {}
+
+  Board( const Board& b ) : m_board( b.m_board ) {}
+  Board& operator=( const Board& b )
   {
-    return m_board[i / 2];
+    m_board = b.m_board;
+    return *this;
   }
 
   bool operator==( const Board& other )
   {
-    return !memcmp( &m_board, &other.m_board, std::ceil( num_pos / 2.0 ) );
+    return m_board == other.m_board;
   }
 
   bool hasRing( const int pos ) const
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
 
-    return isFirstHalf ? m_board[idx] & static_cast<char>( Mask::first_ring )
-                       : m_board[idx] & static_cast<char>( Mask::second_ring );
+    return m_board[idx];
   }
 
   bool hasRing( const int pos, Color color ) const
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
 
-    if( isFirstHalf )
-    {
-      return color == Color::white
-                 ? m_board[idx] == static_cast<char>( Mask::first_white_ring )
-                 : m_board[idx] == static_cast<char>( Mask::first_ring );
-    }
-    else
-    {
-      return color == Color::white
-                 ? m_board[idx] == static_cast<char>( Mask::second_white_ring )
-                 : m_board[idx] == static_cast<char>( Mask::second_ring );
-    }
+    return m_board[idx] &&
+           ( color == Color::white ? m_board[idx + 2] : !m_board[idx + 2] );
   }
 
   void setRing( const int pos, Color color )
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
 
-    if( isFirstHalf )
-    {
-      m_board[idx] &= 0xf0;
-      m_board[idx] |= color == Color::white
-                          ? static_cast<char>( Mask::first_white_ring )
-                          : static_cast<char>( Mask::first_ring );
-    }
-    else
-    {
-      m_board[idx] &= 0x0f;
-      m_board[idx] |= color == Color::white
-                          ? static_cast<char>( Mask::second_white_ring )
-                          : static_cast<char>( Mask::second_ring );
-    }
+    m_board.set( idx );
+    color == Color::white ? m_board.set( idx + 2 ) : m_board.reset( idx + 2 );
   }
 
   void removeRing( const int pos )
   {
     assert( hasRing( pos ) );
+    const int idx = pos * 3;
 
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    if( isFirstHalf )
-    {
-      m_board[idx] = m_board[idx] &= static_cast<char>( ~( 0x01 ) );
-    }
-    else
-    {
-      m_board[idx] = m_board[idx] &= static_cast<char>( ~( 0x10 ) );
-    }
+    m_board.reset( idx );
   }
 
   bool hasPuck( const int pos ) const
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    return isFirstHalf ? m_board[idx] & static_cast<char>( Mask::first_puck )
-                       : m_board[idx] & static_cast<char>( Mask::second_puck );
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
+    return m_board[idx + 1];
   }
 
   bool hasPuck( const int pos, Color color ) const
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    return ( ( m_board[idx] & static_cast<char>( Mask::first_white_color ) &&
-               color == Color::white ) ||
-             ( !( m_board[idx] &
-                  static_cast<char>( Mask::first_white_color ) ) &&
-               color == Color::black ) ) &&
-           ( isFirstHalf
-                 ? m_board[idx] & static_cast<char>( Mask::first_puck )
-                 : m_board[idx] & static_cast<char>( Mask::second_puck ) );
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
+    return m_board[idx + 1] &&
+           ( color == Color::white ? m_board[idx + 2] : !m_board[idx + 2] );
   }
 
   void setPuck( const int pos, Color color )
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    if( isFirstHalf )
-    {
-      m_board[idx] &= 0xf0;
-      m_board[idx] |= color == Color::white
-                          ? static_cast<char>( Mask::first_white_puck )
-                          : static_cast<char>( Mask::first_puck );
-    }
-    else
-    {
-      m_board[idx] &= 0x0f;
-      m_board[idx] = color == Color::white
-                         ? static_cast<char>( Mask::second_white_puck )
-                         : static_cast<char>( Mask::second_puck );
-    }
+    assert( pos >= 0 && pos < num_pos && !hasRing( pos ) );
+    const int idx = pos * 3;
+    m_board.set( idx + 1 );
+    color == Color::white ? m_board.set( idx + 2 ) : m_board.reset( idx + 2 );
   }
 
   void flipPuck( const int pos )
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    isFirstHalf ? m_board[idx] ^= static_cast<char>( Mask::first_white_color )
-                : m_board[idx] ^= static_cast<char>( Mask::second_white_color );
+    assert( pos >= 0 && pos < num_pos && hasPuck( pos ) && !hasRing( pos ) );
+    const int idx = pos * 3;
+    m_board.flip( idx + 2 );  // flip the color bit
   }
 
   void removePuck( const int pos )
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    if( isFirstHalf )
-    {
-      m_board[idx] &= static_cast<char>( ~( 0x02 ) );
-    }
-    else
-    {
-      m_board[idx] &= static_cast<char>( ~( 0x20 ) );
-    }
+    assert( pos >= 0 && pos < num_pos && hasPuck( pos ) && !hasRing( pos ) );
+    const int idx = pos * 3;
+    m_board.reset( idx + 1 );
   }
 
   Color getColor( const int pos ) const
   {
-    assert( pos >= 0 && pos < num_pos * 2 );
-    const int idx = std::floor( pos / 2 );
-    const bool isFirstHalf = pos % 2 == 0;
-
-    if( isFirstHalf )
-    {
-      return ( m_board[idx] & static_cast<char>( Mask::first_white_color ) )
-                 ? Color::white
-                 : Color::black;
-    }
-    return ( m_board[idx] & static_cast<char>( Mask::second_white_color ) )
-               ? Color::white
-               : Color::black;
+    assert( pos >= 0 && pos < num_pos );
+    const int idx = pos * 3;
+    return m_board[idx + 2] ? Color::white : Color::black;
   }
 
-  // char contains 2 pos
-  // Bit: 1 -> ring, 2 -> puck, 3 -> color, 4 -> nothing
-  std::array<char, constexprCeil( num_pos / 2.0 )> m_board;
+  // 255 bit for the 85 position (3 bit each) + 1 bit position for player's turn
+  std::bitset<85 * 3 + 1> m_board;
 };
 
-static_assert( sizeof( Board ) == 43, "Size has to be 43 bytes" );
+static_assert( sizeof( Board ) == 32, "Size has to be 32 bytes" );
