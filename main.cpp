@@ -106,56 +106,60 @@ auto generateRandomBoard() -> Board
   return b;
 }
 
-std::vector<std::vector<int>>& getMoves( const int ringPos )
+std::array<Board, 26 * 5> getSuccessors( Board b, Color color )
 {
-  return Moves::possibleMoves[ringPos];
-}
-
-// given a board, return every possible board considering it is the color's turn
-std::vector<Board> getSuccessors( Board b, Color color )
-{
-  std::vector<Board> successors;
-  successors.reserve( 100 );
-
-  for( int i = 0; i < Board::num_pos; ++i )
+  std::array<Board, 26 * 5> successors;
+  short successorIdx = 0;
+  for( short i = 0; i < Board::num_pos; ++i )
   {
     if( !b.hasRing( i, color ) ) continue;
+    short j = 0;
 
-    assert( b.hasRing( i ) );
-    for( int j = 0; j < Moves::possibleMoves[i].size(); ++j )
+    // for every move of a given ring, we can safely place a puck and remove the
+    // ring from it's current position
+    Board b2 = b;
+    b2.removeRing( i );
+    b2.setPuck( i, color );
+    while( j < 32 )
     {
+      const short size = Moves::possibleMoves[i][j];
+      if( size < 1 ) break;
+
+      const short nextJ = j + size + 1;
       bool hasReachedPuck = false;
-      std::vector<int> puckPos;  // contains all the position where there is a
-                                 // puck on a given direction
-      for( int k = 0; k < Moves::possibleMoves[i][j].size(); ++k )
+      std::array<short, 9> puckPos = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
+      int puckIdx = 0;
+      for( short k = 0; k < size; ++k )
       {
-        assert( b.hasRing( i ) );
-        if( b.hasRing( Moves::possibleMoves[i][j][k] ) ) break;
-        if( b.hasPuck( Moves::possibleMoves[i][j][k] ) )
+        if( b.hasRing( Moves::possibleMoves[i][j + k + 1] ) ) break;
+        if( b.hasPuck( Moves::possibleMoves[i][j + k + 1] ) )
         {
           hasReachedPuck = true;
-          puckPos.push_back( Moves::possibleMoves[i][j][k] );
+          puckPos[puckIdx] = Moves::possibleMoves[i][j + k + 1];
+          puckIdx++;
           continue;
         }
 
-        Board successorBoard( b );
-        successorBoard.removeRing( i );
-        successorBoard.setPuck( i, color );
-        successorBoard.setRing( Moves::possibleMoves[i][j][k], color );
+        successors[successorIdx] = b2;
+        successors[successorIdx].setRing( Moves::possibleMoves[i][j + k + 1],
+                                          color );
 
         if( hasReachedPuck )
         {
-          for( int p : puckPos )
+          for( short p : puckPos )
           {
-            successorBoard.flipPuck( p );
+            if( p == -1 ) break;
+            successors[successorIdx].flipPuck( p );
           }
 
-          successors.push_back( successorBoard );
+          ++successorIdx;
           break;
         }
 
-        successors.push_back( successorBoard );
+        ++successorIdx;
       }
+
+      j = nextJ;
     }
   }
 
@@ -205,14 +209,6 @@ static void BM_GenerateRandomBoard( benchmark::State& state )
   }
 }
 
-static void BM_GetMoves( benchmark::State& state )
-{
-  for( auto _ : state )
-  {
-    static_cast<void>( getMoves( 84 ) );
-  }
-}
-
 static void BM_Evaluate( benchmark::State& state )
 {
   Board b = generateRandomBoard();
@@ -235,7 +231,6 @@ BENCHMARK( BM_Evaluate );
 BENCHMARK( BM_GenerateRandomStartingBoard );
 BENCHMARK( BM_GenerateRandomStartingBoard2 );
 BENCHMARK( BM_GenerateRandomBoard );
-BENCHMARK( BM_GetMoves );
 
 BENCHMARK( BM_GetSuccessors );
 
