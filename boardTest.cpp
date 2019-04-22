@@ -5,7 +5,16 @@
 namespace
 {
   constexpr Color defaultColor = Color::white;
-}
+  constexpr Color secondColor = Color::black;
+
+  // ring [13]
+  // puck [60]
+  const std::string boardExample1 =
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "110000000000000000000000000000000000000000000000000000000000000000000000"
+      "000000000000000000000000000000000000000000000000000000000000000000000101"
+      "000000000000000000000000000000000000000";
+}  // namespace
 
 TEST( emptyBoard, shouldBeEmpty )
 {
@@ -14,6 +23,19 @@ TEST( emptyBoard, shouldBeEmpty )
   {
     EXPECT_FALSE( board.hasPuck( i ) );
     EXPECT_FALSE( board.hasRing( i ) );
+  }
+}
+
+TEST( boardString, asExpected )
+{
+  Board b( boardExample1 );
+  EXPECT_TRUE(b.hasRing(13));
+  EXPECT_TRUE(b.hasPuck(60));
+
+  for(int i = 0; i < Board::num_pos; ++i)
+  {
+    if (i != 13) EXPECT_FALSE(b.hasRing(i));
+    if (i != 60) EXPECT_FALSE(b.hasPuck(i));
   }
 }
 
@@ -84,6 +106,30 @@ TEST( setEvenAndOddPuckSameByte, setGetPuck_AsExpected )
   }
 }
 
+TEST( setPuckOnPuck, shouldCrash)
+{
+  Board b;
+  b.setPuck(0, defaultColor);
+#ifndef NDEBUG
+  EXPECT_DEATH(b.setPuck(0, secondColor), "");
+#else
+  b.setPuck(0, secondColor);
+  EXPECT_TRUE(b.hasPuck(0, secondColor));
+#endif
+}
+
+TEST( setPuckOnRing, shouldCrash)
+{
+  Board b;
+  b.setRing(0, defaultColor);
+#ifndef NDEBUG
+  EXPECT_DEATH(b.setPuck(0, defaultColor), "");
+#else
+  b.setPuck(0, defaultColor);
+  EXPECT_TRUE(b.hasPuck(0, defaultColor));
+#endif
+}
+
 TEST( setEvenRing, asExpected )
 {
   Board b;
@@ -136,6 +182,30 @@ TEST( removeRingOdd, asExpected )
   EXPECT_FALSE( b.hasRing( 0 ) );
 }
 
+TEST( setRingOnPuck, shouldCrash)
+{
+  Board b;
+  b.setPuck(60, defaultColor);
+#ifndef NDEBUG
+  EXPECT_DEATH(b.setRing(60, defaultColor), "");
+#else
+  b.setRing(60, defaultColor);
+  EXPECT_TRUE(b.hasRing(60, defaultColor));
+#endif
+}
+
+TEST( setRingOnRing, shouldCrash )
+{
+  Board b;
+  b.setRing(60, defaultColor);
+#ifndef NDEBUG
+  EXPECT_DEATH(b.setRing(60, secondColor), "");
+#else
+  b.setRing(60, defaultColor);
+  EXPECT_TRUE(b.hasRing(60, defaultColor));
+#endif
+}
+
 TEST( removeRingWhereNone, shouldCrash )
 {
   Board b;
@@ -146,6 +216,16 @@ TEST( removeRingWhereNone, shouldCrash )
   b.removeRing( 55 );
   EXPECT_FALSE( b.hasRing( 55 ) );
 #endif
+}
+
+TEST( flipPuck, asExpected)
+{
+  Board b;
+  b.setPuck(10, defaultColor);
+  b.flipPuck(10);
+  EXPECT_TRUE(b.hasPuck(10, secondColor));
+  b.flipPuck(10);
+  EXPECT_TRUE(b.hasPuck(10, defaultColor));
 }
 
 int main( int argc, char* argv[] )

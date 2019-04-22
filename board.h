@@ -317,12 +317,7 @@ namespace
       68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84};
 
   constexpr int num_ring = 5;
-  constexpr int32_t constexprCeil( float num )
-  {
-    return ( static_cast<float>( static_cast<int32_t>( num ) ) == num )
-               ? static_cast<int32_t>( num )
-               : static_cast<int32_t>( num ) + ( ( num > 0 ) ? 1 : 0 );
-  }
+
 }  // namespace
 
 enum class Color : char
@@ -337,6 +332,10 @@ struct Board
 
   // Initialize an empty board
   Board() : m_board() {}
+  Board( const std::string& bits ) : m_board( bits )
+  {
+    assert( isValid( *this ) );
+  }
 
   Board( const Board& b ) : m_board( b.m_board ) {}
   Board& operator=( const Board& b )
@@ -348,6 +347,11 @@ struct Board
   bool operator==( const Board& other )
   {
     return m_board == other.m_board;
+  }
+
+  std::string to_string() const
+  {
+    return m_board.to_string();
   }
 
   bool hasRing( const int pos ) const
@@ -369,7 +373,7 @@ struct Board
 
   void setRing( const int pos, Color color )
   {
-    assert( pos >= 0 && pos < num_pos );
+    assert( pos >= 0 && pos < num_pos && !hasRing( pos ) && !hasPuck( pos ) );
     const int idx = pos * 3;
 
     m_board.set( idx );
@@ -401,17 +405,10 @@ struct Board
 
   void setPuck( const int pos, Color color )
   {
-    assert( pos >= 0 && pos < num_pos && !hasRing( pos ) );
+    assert( pos >= 0 && pos < num_pos && !hasRing( pos ) && !hasPuck( pos ) );
     const int idx = pos * 3;
     m_board.set( idx + 1 );
     color == Color::white ? m_board.set( idx + 2 ) : m_board.reset( idx + 2 );
-  }
-
-  void flipPuck( const int pos )
-  {
-    assert( pos >= 0 && pos < num_pos && hasPuck( pos ) && !hasRing( pos ) );
-    const int idx = pos * 3;
-    m_board.flip( idx + 2 );  // flip the color bit
   }
 
   void removePuck( const int pos )
@@ -421,6 +418,13 @@ struct Board
     m_board.reset( idx + 1 );
   }
 
+  void flipPuck( const int pos )
+  {
+    assert( pos >= 0 && pos < num_pos && hasPuck( pos ) && !hasRing( pos ) );
+    const int idx = pos * 3;
+    m_board.flip( idx + 2 );  // flip the color bit
+  }
+
   Color getColor( const int pos ) const
   {
     assert( pos >= 0 && pos < num_pos );
@@ -428,8 +432,20 @@ struct Board
     return m_board[idx + 2] ? Color::white : Color::black;
   }
 
+#ifndef NDEBUG
+  // Each position must have either a ring, a puck or nothing
+  bool isValid( const Board board )
+  {
+    for( int i = 0; i < 85; ++i )
+    {
+      if( board.hasRing( i ) && board.hasPuck( i ) ) return false;
+    }
+    return true;
+  }
+#endif
+
   // 255 bit for the 85 position (3 bit each) + 1 bit position for player's turn
-  std::bitset<85 * 3 + 1> m_board;
+  std::bitset<85 * 3> m_board;
 };
 
 static_assert( sizeof( Board ) == 32, "Size has to be 32 bytes" );
