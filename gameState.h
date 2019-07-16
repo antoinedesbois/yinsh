@@ -22,6 +22,9 @@ class GameState
    bool hasRing(bool color, int pos) const;
    bool hasPuck(int pos) const;
    bool hasPuck(bool color, int pos) const;
+ 
+ private:
+   inline void changeTurn();
   
  private:
   Board m_board;

@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <chrono>
 #include <cmath>
-#include <iostream>
 #include <random>
 #include <bitset>
 

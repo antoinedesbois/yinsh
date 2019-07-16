@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <chrono>
 #include <cmath>
-#include <iostream>
 #include <random>
 
 #include <stdlib.h>

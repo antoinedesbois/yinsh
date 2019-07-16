@@ -39,7 +39,7 @@ TEST( defaultGameState, asExpected )
   EXPECT_FALSE( defaultState.isGameOver() );
 
   // Make sure the board is empty
-  for( int i = 0; i < Board::num_pos; ++i)
+  for( int i = 0; i < Board::num_pos; ++i )
   {
     EXPECT_FALSE( defaultState.hasRing( i ) );
     EXPECT_FALSE( defaultState.hasPuck( i ) );
@@ -174,8 +174,60 @@ TEST( moveRingTwoPositionAfterPucks, shouldFail )
   EXPECT_TRUE( state.hasPuck( true, 25 ) );
 }
 
-TEST( createSeries, shouldHasToRemoveSeries )
+TEST( createSeries, hasToRemoveSeries )
 {
+  GameState state = createGameState();
+
+  const std::array<int, 5> puckPosWhite = {8, 15, 23, 32, 41};
+  const std::array<int, 5> puckPosBlack = {9, 16, 24, 33, 42};
+  EXPECT_TRUE( state.moveRing( true, puckPosWhite[0], puckPosWhite[1] ) );
+  EXPECT_TRUE( state.moveRing( false, 9, 16 ) );
+
+  EXPECT_TRUE( state.moveRing( true, puckPosWhite[1], puckPosWhite[2] ) );
+  EXPECT_TRUE( state.moveRing( false, 16, 24 ) );
+
+  EXPECT_TRUE( state.moveRing( true, puckPosWhite[2], puckPosWhite[3] ) );
+  EXPECT_TRUE( state.moveRing( false, 24, 33 ) );
+
+  EXPECT_TRUE( state.moveRing( true, puckPosWhite[3], puckPosWhite[4] ) );
+  EXPECT_TRUE( state.moveRing( false, 33, 42 ) );
+
+  EXPECT_TRUE( state.moveRing( true, puckPosWhite[4], 50 ) );
+
+  EXPECT_TRUE( state.isWhiteTurn() );
+  EXPECT_FALSE( state.isGameOver() );
+
+  // White now has a series, black shouldn't be allowed to play
+  EXPECT_FALSE( state.moveRing( false, 42, 51 ) );
+
+  const int ringToRemoveIdxWhite = 0;
+  EXPECT_TRUE( state.removeSeries( true, puckPosWhite, ringToRemoveIdxWhite ) );
+  EXPECT_FALSE( state.hasRing( ringToRemoveIdxWhite ) );
+  EXPECT_FALSE( state.isWhiteTurn() );
+  for( int i : puckPosWhite )
+  {
+    EXPECT_FALSE( state.hasPuck( i ) );
+  }
+
+  EXPECT_TRUE( state.moveRing( false, 42, 51 ) );
+
+  // Black should now have to remove series
+  EXPECT_FALSE( state.isWhiteTurn() );
+  const int ringToRemoveIdxBlack = 1;
+  EXPECT_TRUE(
+      state.removeSeries( false, puckPosBlack, ringToRemoveIdxBlack ) );
+  EXPECT_TRUE( state.isWhiteTurn() );
+  EXPECT_FALSE( state.isGameOver() );
+  for( int i : puckPosBlack )
+  {
+    EXPECT_FALSE( state.hasPuck( i ) );
+  }
+}
+
+TEST( playFullGame1, asExpected )
+{
+
+  //EXPECT_TRUE( false );
 }
 
 int main( int argc, char* argv[] )

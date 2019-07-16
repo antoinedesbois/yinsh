@@ -7,6 +7,16 @@ namespace
   {
     return pos >= 0 && pos < Board::num_pos;
   }
+
+  int countRings( const bool color, const Board& board )
+  {
+    int count = 0;
+    for( int i = 0; i < Board::num_pos; ++i )
+    {
+      if( board.hasRing( color, i ) ) ++count;
+    }
+    return count;
+  }
 }  // namespace
 
 GameState::GameState()
@@ -26,7 +36,7 @@ bool GameState::placeRing( const bool color, const int pos )
   }
 
   m_board.setRing( m_isWhiteTurn, pos );
-  m_isWhiteTurn = !m_isWhiteTurn;
+  changeTurn();
 
   int numRing = 0;
   for( int pos = 0; pos < Board::num_pos; ++pos )
@@ -99,7 +109,15 @@ bool GameState::moveRing( const bool color, const int initialPos,
         // Might have created a series, do not switch turn if it is the case
         if( !m_board.hasSeries( initialPos ) )
         {
-          m_isWhiteTurn = !m_isWhiteTurn;
+          changeTurn();
+        }
+        else
+        {
+          // Check if game is over
+          if( countRings( color, m_board ) == 3 )
+          {
+            m_isGameOver = true;
+          }
         }
         return true;
       }
@@ -110,12 +128,53 @@ bool GameState::moveRing( const bool color, const int initialPos,
 
   return false;
 }
-bool GameState::removeSeries( const bool color, const std::array<int, 5> puckPos,
+bool GameState::removeSeries( const bool color,
+                              const std::array<int, 5> puckPos,
                               const int ringPos )
 {
-  // TODO check if every specified position in is a straight line
-  // Make sure the colors match
-  return true;
+  if( color != m_isWhiteTurn ) return false;
+  // All puck must be the color we want to remove
+  for( int i : puckPos )
+  {
+    if( !hasPuck( color, i ) ) return false;
+  }
+
+  if( !hasRing( color, ringPos ) ) return false;
+
+  // Make sure puck are in an actual contiguous line
+  short i = 0;
+  while( i < 32 )
+  {
+    const short size = Moves::possibleMoves[puckPos[0]][i];
+    if( size < 1 ) return false;
+
+    int puckIdx = 1;
+    for( int j = 0; j < size; ++j )
+    {
+      if( Moves::possibleMoves[puckPos[0]][i + j + 1] == puckPos[puckIdx] )
+      {
+        puckIdx++;
+      }
+      else  // We know this direction doesn't contain de series
+      {
+        break;
+      }
+    }
+
+    if( puckIdx == 5 )
+    {
+      for( int p : puckPos )
+      {
+        m_board.removePuck( p );
+      }
+      m_board.removeRing( ringPos );
+      changeTurn();
+      return true;
+    }
+    i += size + 1;
+  }
+
+  return false;
 }
 
 bool GameState::isWhiteTurn() const
@@ -152,4 +211,10 @@ bool GameState::hasPuck( const bool color, const int pos ) const
 {
   return m_board.hasPuck( color, pos );
 }
+
+void GameState::changeTurn()
+{
+  m_isWhiteTurn = !m_isWhiteTurn;
+}
+
 
