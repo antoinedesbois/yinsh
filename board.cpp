@@ -89,13 +89,13 @@ void Board::flipPuck( const int pos )
   m_board.flip( idx + 2 );  // flip the color bit
 }
 
-bool Board::hasSeries( const int pos )
+bool Board::hasSeries( const int pos ) const
 {
   const bool color = getColor( pos );
   return hasSeries(color, pos);
 }
 
-bool Board::hasSeries( const bool color, const int pos )
+bool Board::hasSeries( const bool color, const int pos ) const
 {
   if (!hasPuck(color, pos)) return false;
 
@@ -108,7 +108,7 @@ bool Board::hasSeries( const bool color, const int pos )
   while( i < 32 )
   {
     const int size = Moves::possibleMoves[pos][i];
-    if( size < 1 ) return false;
+    if( size == -1 ) return false;
 
     const int nextI = i + size + 1;
 

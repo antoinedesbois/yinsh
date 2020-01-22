@@ -194,7 +194,7 @@ TEST( createSeries, hasToRemoveSeries )
 
   EXPECT_TRUE( state.moveRing( true, puckPosWhite[4], 50 ) );
 
-  EXPECT_TRUE( state.isWhiteTurn() );
+  EXPECT_FALSE( state.isWhiteTurn() );
   EXPECT_FALSE( state.isGameOver() );
 
   // White now has a series, black shouldn't be allowed to play
@@ -211,8 +211,6 @@ TEST( createSeries, hasToRemoveSeries )
 
   EXPECT_TRUE( state.moveRing( false, 42, 51 ) );
 
-  // Black should now have to remove series
-  EXPECT_FALSE( state.isWhiteTurn() );
   const int ringToRemoveIdxBlack = 1;
   EXPECT_TRUE(
       state.removeSeries( false, puckPosBlack, ringToRemoveIdxBlack ) );
@@ -224,47 +222,74 @@ TEST( createSeries, hasToRemoveSeries )
   }
 }
 
-TEST( playFullGame1, asExpected )
+TEST( playFullGame3, asExpected )
 {
   GameState state;
-  EXPECT_TRUE(state.placeRing(true, 22));
-  EXPECT_TRUE(state.placeRing(false,0));
-  EXPECT_TRUE(state.placeRing(true, 34));
-  EXPECT_TRUE(state.placeRing(false, 14));
-  EXPECT_TRUE(state.placeRing(true, 52));
-  EXPECT_TRUE(state.placeRing(false, 64));
-  EXPECT_TRUE(state.placeRing(true, 79));
-  EXPECT_TRUE(state.placeRing(false, 68));
-  EXPECT_TRUE(state.placeRing(true, 83));
-  EXPECT_TRUE(state.placeRing(false, 39));
+  EXPECT_TRUE( state.placeRing( true, 47 ) );
+  EXPECT_TRUE( state.placeRing( false, 42 ) );
+  EXPECT_TRUE( state.placeRing( true, 4 ) );
+  EXPECT_TRUE( state.placeRing( false, 52 ) );
+  EXPECT_TRUE( state.placeRing( true, 3 ) );
+  EXPECT_TRUE( state.placeRing( false, 43 ) );
+  EXPECT_TRUE( state.placeRing( true, 37 ) );
+  EXPECT_TRUE( state.placeRing( false, 51 ) );
+  EXPECT_TRUE( state.placeRing( true, 84 ) );
+  EXPECT_TRUE( state.placeRing( false, 32 ) );
+  EXPECT_FALSE( state.isRingPlacementPhase() );
 
-  EXPECT_FALSE(state.isRingPlacementPhase());
-  EXPECT_TRUE(state.isWhiteTurn());
+  EXPECT_TRUE( state.moveRing( true, 4, 5 ) );
+  EXPECT_TRUE( state.moveRing( false, 42, 33 ) );
+  EXPECT_TRUE( state.moveRing( true, 5, 6 ) );
+  EXPECT_TRUE( state.moveRing( false, 32, 8 ) );
+  EXPECT_TRUE( state.moveRing( true, 3, 9 ) );
+  EXPECT_TRUE( state.moveRing( false, 33, 24 ) );
+  EXPECT_TRUE( state.moveRing( true, 47, 29 ) );
+  EXPECT_TRUE( state.moveRing( false, 43, 34 ) );
+  EXPECT_TRUE( state.moveRing( true, 29, 38 ) );
+  EXPECT_TRUE( state.moveRing( false, 51, 41 ) );
+  EXPECT_TRUE( state.moveRing( true, 6, 53 ) );
+  EXPECT_TRUE( state.moveRing( false, 24, 16 ) );
+  EXPECT_TRUE( state.moveRing( true, 38, 28 ) );
+  EXPECT_TRUE( state.moveRing( false, 41, 59 ) );
+  EXPECT_TRUE( state.moveRing( true, 84, 31 ) );
+  EXPECT_TRUE( state.moveRing( false, 59, 19 ) );
+  EXPECT_TRUE( state.moveRing( true, 31, 22 ) );
+  EXPECT_TRUE( state.moveRing( false, 19, 21 ) );
+  EXPECT_TRUE( state.moveRing( true, 22, 40 ) );
+  EXPECT_TRUE( state.moveRing( false, 21, 30 ) );
+  EXPECT_TRUE( state.moveRing( true, 28, 11 ) );
+  EXPECT_TRUE( state.moveRing( false, 30, 20 ) );
+  EXPECT_TRUE( state.moveRing( true, 11, 12 ) );
+  EXPECT_TRUE( state.moveRing( false, 16, 60 ) );
+  EXPECT_TRUE( state.removeSeries( false, {29, 30, 31, 32, 33}, 52 ) );
 
-  EXPECT_TRUE(state.moveRing(true, 79, 78));
-  EXPECT_TRUE(state.moveRing(false,64, 55));
-  EXPECT_TRUE(state.moveRing(true, 78, 77));
-  EXPECT_TRUE(state.moveRing(false, 55, 65));
-  EXPECT_TRUE(state.moveRing(true, 52, 56));
-  EXPECT_TRUE(state.moveRing(false, 68, 72));
-  EXPECT_TRUE(state.moveRing(true, 83, 82));
-  EXPECT_TRUE(state.moveRing(false, 72, 84));
-  EXPECT_TRUE(state.moveRing(true, 77, 76));
-  EXPECT_TRUE(state.moveRing(false, 39, 49));
-  EXPECT_TRUE(state.moveRing(true, 76, 75));
-  //EXPECT_TRUE(state.moveRing(false, , ));
-  //EXPECT_TRUE(state.moveRing(true, 75, 74));
-  //EXPECT_TRUE(state.moveRing(false, 84, 70));
-  //EXPECT_TRUE(state.moveRing(true, 74, 80));
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
-  //EXPECT_TRUE(state.moveRing());
+  EXPECT_TRUE( state.moveRing( true, 53, 33 ) );
+  EXPECT_TRUE( state.moveRing( false, 8, 7 ) );
+  EXPECT_TRUE( state.moveRing( true, 12, 17 ) );
+  EXPECT_TRUE( state.moveRing( false, 7, 1 ) );
+  EXPECT_TRUE( state.moveRing( true, 17, 15 ) );
+  EXPECT_TRUE( state.moveRing( false, 1, 13 ) );
+  EXPECT_TRUE( state.moveRing( true, 33, 29 ) );
+  EXPECT_TRUE( state.moveRing( false, 20, 30 ) );
+  EXPECT_TRUE( state.moveRing( true, 29, 39 ) );
+  EXPECT_TRUE( state.moveRing( false, 13, 32 ) );
+  EXPECT_TRUE( state.moveRing( true, 15, 23 ) );
+  EXPECT_TRUE( state.moveRing( false, 30, 31 ) );
+  EXPECT_TRUE( state.removeSeries( false, {30, 21, 13, 6, 1}, 60 ) );
+
+  EXPECT_TRUE( state.moveRing( true, 39, 1 ) );
+  EXPECT_TRUE( state.moveRing( false, 32, 52 ) );
+  EXPECT_TRUE( state.moveRing( true, 9, 60 ) );
+  EXPECT_TRUE( state.moveRing( false, 31, 61 ) );
+  EXPECT_TRUE( state.moveRing( true, 23, 50 ) );
+  EXPECT_TRUE( state.moveRing( false, 52, 13 ) );
+  EXPECT_TRUE( state.moveRing( true, 37, 18 ) );
+  EXPECT_TRUE( state.moveRing( false, 13, 21 ) );
+  EXPECT_TRUE( state.moveRing( true, 40, 30 ) );
+  EXPECT_TRUE( state.moveRing( false, 21, 25 ) );
+  EXPECT_TRUE( state.removeSeries( false, {13, 22, 32, 42, 52}, 25 ) );
+
+  EXPECT_TRUE( state.isGameOver() );
 }
 
 int main( int argc, char* argv[] )
