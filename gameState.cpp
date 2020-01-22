@@ -17,18 +17,33 @@ namespace
     }
     return count;
   }
+
+  bool hasSeries( const Board& board )
+  {
+    for( int i = 0; i < Board::num_pos; ++i )
+    {
+      if( board.hasSeries( i ) )
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 }  // namespace
 
 GameState::GameState()
     : m_board(),
+      m_hasSerie(),
       m_isWhiteTurn( true ),
       m_isRingPlacementPhase( true ),
-      m_isGameOver( false )
+      m_isGameOver( false ),
+      m_isDraw( false )
 {
 }
 
 bool GameState::placeRing( const bool color, const int pos )
 {
+  assert( !m_hasSerie );
   if( color != m_isWhiteTurn || !m_isRingPlacementPhase || !isValidPos( pos ) ||
       m_board.hasRing( pos ) )
   {
@@ -56,7 +71,8 @@ bool GameState::moveRing( const bool color, const int initialPos,
                           const int endPos )
 {
   if( color != m_isWhiteTurn || !isValidPos( initialPos ) ||
-      !isValidPos( endPos ) || !m_board.hasRing( m_isWhiteTurn, initialPos ) )
+      !isValidPos( endPos ) || !m_board.hasRing( m_isWhiteTurn, initialPos ) ||
+      m_hasSerie )
   {
     return false;
   }
@@ -65,7 +81,12 @@ bool GameState::moveRing( const bool color, const int initialPos,
   while( i < 32 )
   {
     const short size = Moves::possibleMoves[initialPos][i];
-    if( size < 1 ) return false;
+    if( size < 0 ) return false;
+    if( size == 0 )
+    {
+      i = i + 1;
+      continue;
+    }
 
     const short nextI = i + size + 1;
     bool hasReachedPuck = false;
@@ -106,19 +127,15 @@ bool GameState::moveRing( const bool color, const int initialPos,
         m_board.setPuck( color, initialPos );
         m_board.setRing( color, endPos );
 
-        // Might have created a series, do not switch turn if it is the case
-        if( !m_board.hasSeries( initialPos ) )
+        // Check if we have created any series by flipping pucks or moving the
+        // ring
+        m_hasSerie = m_board.hasSeries( initialPos );
+        for( int p = 0; p < puckIdx && !m_hasSerie; ++p )
         {
-          changeTurn();
+          m_hasSerie = m_board.hasSeries( puckPos[p] );
         }
-        else
-        {
-          // Check if game is over
-          if( countRings( color, m_board ) == 3 )
-          {
-            m_isGameOver = true;
-          }
-        }
+
+        changeTurn();
         return true;
       }
     }
@@ -132,7 +149,8 @@ bool GameState::removeSeries( const bool color,
                               const std::array<int, 5> puckPos,
                               const int ringPos )
 {
-  if( color != m_isWhiteTurn ) return false;
+  if( !m_hasSerie ) return false;
+
   // All puck must be the color we want to remove
   for( int i : puckPos )
   {
@@ -168,7 +186,23 @@ bool GameState::removeSeries( const bool color,
         m_board.removePuck( p );
       }
       m_board.removeRing( ringPos );
-      changeTurn();
+
+      // We have to keep playing till no series on the board
+      m_hasSerie = hasSeries( m_board );
+
+      // End game logic
+      const int whiteRingCount = countRings( true, m_board );
+      const int blackRingCount = countRings( false, m_board );
+      if( whiteRingCount < 3 && blackRingCount < 3 )
+      {
+        m_isDraw = true;
+        m_isGameOver = true;
+        return true;
+      }
+
+      m_isGameOver =
+          !m_hasSerie && ( whiteRingCount < 3 || blackRingCount < 3 );
+      if( whiteRingCount < 3 ) m_isWhiteTurn = true;
       return true;
     }
     i += size + 1;
@@ -212,9 +246,22 @@ bool GameState::hasPuck( const bool color, const int pos ) const
   return m_board.hasPuck( color, pos );
 }
 
+#ifndef NDEBUG
+#include <iostream>
+void GameState::dump() const
+{
+  for( int i = 0; i < 85; ++i )
+  {
+    std::cout << i << " : " << m_board.getColor( i ) << " : "
+              << ( m_board.hasPuck( i ) ? "p"
+                                        : m_board.hasRing( i ) ? "r" : " " )
+              << std::endl;
+  }
+}
+#endif
+
 void GameState::changeTurn()
 {
   m_isWhiteTurn = !m_isWhiteTurn;
 }
-
 

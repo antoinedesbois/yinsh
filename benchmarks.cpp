@@ -29,8 +29,6 @@ void randomPos( char& c ) {}
 // 5 ring for each color
 auto generateRandomStartingBoard() -> Board
 {
-
-
   std::array<int, Board::num_ring * 2> randPos;
   for( auto& r : randPos )
   {
@@ -47,7 +45,7 @@ auto generateRandomStartingBoard() -> Board
   Board b;
   for( size_t i = 0; i < randPos.size(); ++i )
   {
-    b.setRing( randPos[i], i % 2 == 0 );
+    b.setRing( i % 2 == 0, randPos[i] );
   }
 
   return b;
@@ -63,7 +61,7 @@ auto generateRandomStartingBoard2() -> Board
   Board b;
   for( int i = 0; i < Board::num_ring * 2; ++i )
   {
-    b.setRing( rand_num[i], i % 2 == 0 );
+    b.setRing( i % 2 == 0, rand_num[i] );
   }
 
   return b;
@@ -72,8 +70,8 @@ auto generateRandomStartingBoard2() -> Board
 auto generateRandomBoard() -> Board
 {
   // generate random number of ring
-  const int numBlackRing = rand() % 3 + 5;
-  const int numWhiteRing = rand() % 3 + 5;
+  const int numBlackRing = rand() % 5 + 1;
+  const int numWhiteRing = rand() % 5 + 1;
   std::vector<int> ringPos( numBlackRing + numWhiteRing );
   for( auto& p : ringPos )
   {
@@ -93,8 +91,9 @@ auto generateRandomBoard() -> Board
   for( auto& p : puckPos )
   {
     int randIdx = rand() % Board::num_pos;
-    while( std::find( puckPos.begin(), puckPos.end(), randIdx ) !=
-           puckPos.end() )
+    while(
+        std::find( puckPos.begin(), puckPos.end(), randIdx ) != puckPos.end() ||
+        std::find( ringPos.begin(), ringPos.end(), randIdx ) != ringPos.end() )
     {
       randIdx = rand() % Board::num_pos;
     }
@@ -105,25 +104,25 @@ auto generateRandomBoard() -> Board
   Board b;
   for( size_t i = 0; i < ringPos.size(); ++i )
   {
-    b.setRing( ringPos[i], i % 2 == 0 );
+    b.setRing( i % 2 == 0, ringPos[i] );
   }
 
   for( size_t i = 0; i < puckPos.size(); ++i )
   {
-    if( b.hasRing( puckPos[i] ) ) continue;
-    b.setPuck( puckPos[i], i % 2 == 0 );
+    b.setPuck( i % 2 == 0, puckPos[i] );
   }
 
   return b;
 }
 
+#include <iostream>
 std::array<Board, 26 * 5> getSuccessors( Board b, bool color )
 {
   std::array<Board, 26 * 5> successors;
   short successorIdx = 0;
   for( short i = 0; i < Board::num_pos; ++i )
   {
-    if( !b.hasRing( i, color ) ) continue;
+    if( !b.hasRing( color, i ) ) continue;
     short j = 0;
 
     // for every move of a given ring, we can safely place a puck and remove the
@@ -152,8 +151,8 @@ std::array<Board, 26 * 5> getSuccessors( Board b, bool color )
         }
 
         successors[successorIdx] = b2;
-        successors[successorIdx].setRing( Moves::possibleMoves[i][j + k + 1],
-                                          color );
+        successors[successorIdx].setRing( color,
+                                          Moves::possibleMoves[i][j + k + 1] );
 
         if( hasReachedPuck )
         {
@@ -183,11 +182,11 @@ int evaluate( Board b, const bool color )
   int value = 0;
   for( int i = 0; i < Board::num_pos; ++i )
   {
-    if( b.hasRing( i, color ) )
+    if( b.hasRing( color, i ) )
       value -= 10;
-    else if( b.hasRing( 1 ) )
+    else if( b.hasRing( i ) )
       value += 10;
-    else if( b.hasPuck( i, color ) )
+    if( b.hasPuck( color, i ) )
       value += 1;
     else if( b.hasPuck( i ) )
       value -= 1;

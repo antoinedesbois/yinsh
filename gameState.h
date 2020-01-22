@@ -6,30 +6,35 @@
 class GameState
 {
  public:
-   GameState();
+  GameState();
 
-   bool placeRing(bool color, int pos);
-   bool moveRing(bool color, int initialPos, int endPos);
+  bool placeRing( bool color, int pos );
+  bool moveRing( bool color, int initialPos, int endPos );
 
-   // This is the action of removing a series and a ring
-   bool removeSeries(bool color, std::array<int, 5> puckPos, int ringPos);
+  // This is the action of removing a series and a ring
+  bool removeSeries( bool color, std::array<int, 5> puckPos, int ringPos );
 
-   bool isWhiteTurn() const;
-   bool isRingPlacementPhase() const;
-   bool isGameOver() const;
+  bool isWhiteTurn() const;
+  bool isRingPlacementPhase() const;
+  bool isGameOver() const;
 
-   bool hasRing(int pos) const;
-   bool hasRing(bool color, int pos) const;
-   bool hasPuck(int pos) const;
-   bool hasPuck(bool color, int pos) const;
- 
+  bool hasRing( int pos ) const;
+  bool hasRing( bool color, int pos ) const;
+  bool hasPuck( int pos ) const;
+  bool hasPuck( bool color, int pos ) const;
+
+#ifndef NDEBUG
+  void dump() const;
+#endif
  private:
-   inline void changeTurn();
-  
+  inline void changeTurn();
+
  private:
   Board m_board;
+  bool m_hasSerie;
   bool m_isWhiteTurn;
   bool m_isRingPlacementPhase;
   bool m_isGameOver;
+  bool m_isDraw;
 };
 
