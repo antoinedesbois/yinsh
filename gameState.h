@@ -1,10 +1,15 @@
 
 
 #include <board.h>
+
 #include <bitset>
+#include <utility>
 
 class GameState
 {
+  using Success = bool;
+  using IsWhiteWinner = bool;
+
  public:
   GameState();
 
@@ -17,6 +22,7 @@ class GameState
   bool isWhiteTurn() const;
   bool isRingPlacementPhase() const;
   bool isGameOver() const;
+  std::pair<Success, IsWhiteWinner> isWhiteWinner();
 
   bool hasRing( int pos ) const;
   bool hasRing( bool color, int pos ) const;

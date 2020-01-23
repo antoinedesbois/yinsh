@@ -81,12 +81,7 @@ bool GameState::moveRing( const bool color, const int initialPos,
   while( i < 32 )
   {
     const short size = Moves::possibleMoves[initialPos][i];
-    if( size < 0 ) return false;
-    if( size == 0 )
-    {
-      i = i + 1;
-      continue;
-    }
+    if( size == -1 ) return false;
 
     const short nextI = i + size + 1;
     bool hasReachedPuck = false;
@@ -164,7 +159,7 @@ bool GameState::removeSeries( const bool color,
   while( i < 32 )
   {
     const short size = Moves::possibleMoves[puckPos[0]][i];
-    if( size < 1 ) return false;
+    if( size == -1 ) return false;
 
     int puckIdx = 1;
     for( int j = 0; j < size; ++j )
@@ -202,7 +197,10 @@ bool GameState::removeSeries( const bool color,
 
       m_isGameOver =
           !m_hasSerie && ( whiteRingCount < 3 || blackRingCount < 3 );
-      if( whiteRingCount < 3 ) m_isWhiteTurn = true;
+      if( whiteRingCount < 3 )
+        m_isWhiteTurn = true;
+      else if( blackRingCount < 3 )
+        m_isWhiteTurn = false;
       return true;
     }
     i += size + 1;
@@ -224,6 +222,11 @@ bool GameState::isRingPlacementPhase() const
 bool GameState::isGameOver() const
 {
   return m_isGameOver;
+}
+
+auto GameState::isWhiteWinner() -> std::pair<Success, IsWhiteWinner>
+{
+  return std::make_pair( isGameOver(), isWhiteTurn() );
 }
 
 bool GameState::hasRing( const int pos ) const
