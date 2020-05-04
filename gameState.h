@@ -1,4 +1,6 @@
 
+#ifndef GAME_STATE_H_
+#define GAME_STATE_H_
 
 #include <board.h>
 
@@ -44,3 +46,4 @@ class GameState
   bool m_isDraw;
 };
 
+#endif // GAME_STATE_H_

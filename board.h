@@ -1,4 +1,7 @@
 
+#ifndef BOARD_H_
+#define BOARD_H_
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -186,7 +189,7 @@ namespace Moves
           5, 0,  0,  3,  57, 66, 74, 0,  -1, -1, -1, -1, -1, -1, -1, -1},
       std::array<char, max_array_size>{
           1, 47, 8,  49, 50, 51, 52, 53, 54, 55, 56, 6, 39, 30, 21, 13,
-          6, 1,  57, 2,  38, 28, 4,  58, 67, 75, 81, 1, -1, -1, -1, -1},
+          6, 1,  1, 57, 2,  38, 28, 4,  58, 67, 75, 81,  -1, -1, -1, -1},
       std::array<char, max_array_size>{
           2, 48, 47, 7,  50, 51, 52, 53, 54, 55, 56, 6,  40, 31, 22, 14,
           7, 2,  2,  58, 66, 3,  39, 29, 19, 4,  59, 68, 76, 82, -1, -1},
@@ -367,3 +370,5 @@ struct Board
 };
 
 static_assert( sizeof( Board ) == 32, "Size has to be 32 bytes" );
+
+#endif // BOARD_H_

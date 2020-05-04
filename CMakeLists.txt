@@ -15,10 +15,10 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIR})
 link_directories("/usr/local/lib")
 
-add_executable(Yinsh main.cpp gameState.cpp board.cpp)
+add_executable(Yinsh main.cpp gameState.cpp board.cpp min_max.cpp)
 add_executable(boardTest  boardTest.cpp board.cpp )
 add_executable(gameStateTest gameState.cpp gameStateTest.cpp board.cpp)
-add_executable(benchmarks benchmarks.cpp board.cpp)
+add_executable(benchmarks benchmarks.cpp board.cpp min_max.cpp)
 
 target_include_directories(boardTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(gameStateTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,5 +1,6 @@
 
 #include <board.h>
+#include <min_max.h>
 
 #include <benchmark/benchmark.h>
 
@@ -176,25 +177,6 @@ std::array<Board, 26 * 5> getSuccessors( Board b, bool color )
   return successors;
 }
 
-// given a color, check if the board is a good winning position
-int evaluate( Board b, const bool color )
-{
-  int value = 0;
-  for( int i = 0; i < Board::num_pos; ++i )
-  {
-    if( b.hasRing( color, i ) )
-      value -= 10;
-    else if( b.hasRing( i ) )
-      value += 10;
-    if( b.hasPuck( color, i ) )
-      value += 1;
-    else if( b.hasPuck( i ) )
-      value -= 1;
-  }
-
-  return value;
-}
-
 static void BM_GenerateRandomStartingBoard( benchmark::State& state )
 {
   for( auto _ : state )
@@ -224,7 +206,7 @@ static void BM_Evaluate( benchmark::State& state )
   Board b = generateRandomBoard();
   for( auto _ : state )
   {
-    static_cast<void>( evaluate( b, true ) );
+    static_cast<void>( ai::evaluate( b, true ) );
   }
 }
 
