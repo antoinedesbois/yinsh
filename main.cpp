@@ -31,7 +31,8 @@ namespace
 
 int main()
 {
-  ai::getNextMove(generateRandomStartingBoard(), true);
+  ai::getNextMoveDFS(generateRandomStartingBoard(), true);
+  //ai::getNextMove(generateRandomStartingBoard(), true);
   
   return 0;
 }
