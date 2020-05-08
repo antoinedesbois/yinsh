@@ -207,8 +207,8 @@ bool Board2::hasPuck( const uint8_t pos ) const
 bool Board2::hasPuck( const bool isWhite, const uint8_t pos ) const
 {
   assert( pos >= 0 && pos < num_pos );
-  return isWhite ? m_board[10 + pos / 8] & 1 << pos % 8
-                 : m_board[21 + pos / 8] & 1 << pos % 8;
+  return isWhite ? m_board[10 + pos / 8] & (1 << pos % 8)
+                 : m_board[21 + pos / 8] & (1 << pos % 8);
 }
 
 void Board2::setPuck( const bool isWhite, const uint8_t pos )
@@ -295,4 +295,9 @@ void Board2::flipPuck( const uint8_t pos )
 //  return true;
 //}
 //#endif
+void Board2::print() const {
+ for (int i = 0; i < 32; ++i) {
+   printf("%#04x ", m_board[i]);
+ }
+}
 

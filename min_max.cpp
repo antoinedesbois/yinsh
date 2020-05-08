@@ -220,8 +220,8 @@ namespace ai
     value += __builtin_popcountl(
         *reinterpret_cast<const uint64_t*>( &board.m_board[10 + offset] ) );
     value += __builtin_popcount(
-        ( *reinterpret_cast<const int32_t*>( &board.m_board[18 + offset] ) ) &
-        0xfff0 );
+        ( *reinterpret_cast<const uint32_t*>( &board.m_board[18 + offset] ) ) &
+        0xffffff00 );
 
     return value;
   }

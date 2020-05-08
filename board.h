@@ -403,6 +403,8 @@ struct Board2
   bool hasSeries( uint8_t pos ) const;
   bool hasSeries( bool isWhite, uint8_t pos ) const;
 
+  void print() const;
+
   // [0..9,        10..20,           21, 31]
   // ^               ^               ^
   // 10 byte ring    11 byte puck    11 byte puck
