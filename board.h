@@ -188,8 +188,8 @@ namespace Moves
           9, 48, 49, 50, 51, 52, 53, 54, 55, 56, 0,  6,  38, 29, 20, 12,
           5, 0,  0,  3,  57, 66, 74, 0,  -1, -1, -1, -1, -1, -1, -1, -1},
       std::array<char, max_array_size>{
-          1, 47, 8,  49, 50, 51, 52, 53, 54, 55, 56, 6, 39, 30, 21, 13,
-          6, 1,  1, 57, 2,  38, 28, 4,  58, 67, 75, 81,  -1, -1, -1, -1},
+          1, 47, 8, 49, 50, 51, 52, 53, 54, 55, 56, 6,  39, 30, 21, 13,
+          6, 1,  1, 57, 2,  38, 28, 4,  58, 67, 75, 81, -1, -1, -1, -1},
       std::array<char, max_array_size>{
           2, 48, 47, 7,  50, 51, 52, 53, 54, 55, 56, 6,  40, 31, 22, 14,
           7, 2,  2,  58, 66, 3,  39, 29, 19, 4,  59, 68, 76, 82, -1, -1},
@@ -310,8 +310,8 @@ namespace Moves
           2,  82, 81, 1,  84, 7,  78, 71, 63, 54, 45, 36, 27, 0,  8,  77,
           69, 60, 50, 40, 30, 20, 11, 0,  -1, -1, -1, -1, -1, -1, -1, -1},
       std::array<char, max_array_size>{
-          3,  83, 82, 81, 0, 6,  79, 72, 64, 55, 46, 37, 0,  9,  78, 70, 61,
-          51, 41, 31, 21, 12, 4,  0, -1, -1, -1, -1, -1, -1, -1, -1}};
+          3,  83, 82, 81, 0,  6,  79, 72, 64, 55, 46, 37, 0,  9,  78, 70,
+          61, 51, 41, 31, 21, 12, 4,  0,  -1, -1, -1, -1, -1, -1, -1, -1}};
 
 }  // namespace Moves
 
@@ -366,9 +366,48 @@ struct Board
 #endif
 
   // 255 bit for the 85 position (3 bit each)
-  std::bitset<85 * 3> m_board;
+  std::bitset<85 * 3 + 1> m_board;
 };
 
 static_assert( sizeof( Board ) == 32, "Size has to be 32 bytes" );
 
-#endif // BOARD_H_
+struct Board2
+{
+  constexpr static int num_pos = 85;
+  constexpr static int num_ring = 5;
+
+  // Initialize an empty board
+  Board2() : m_board()
+  {
+    std::memset( &m_board[0], 0xff, 10);
+    std::memset( &m_board[10], 0x00, 22 );
+  }
+
+  Board2( const Board2& b );
+  Board2& operator=( const Board2& b );
+
+  bool operator==( const Board2& other ) const;
+
+  bool hasRing( uint8_t pos ) const;
+  bool hasRing( bool isWhite, uint8_t pos ) const;
+  void setRing( uint8_t index, uint8_t pos );
+  void removeRing( uint8_t index );
+
+  bool hasPuck( uint8_t pos ) const;
+  bool hasPuck( bool isWhite, uint8_t pos ) const;
+  void setPuck( bool isWhite, uint8_t pos );
+  void removePuck( uint8_t pos );
+  void flipPuck( uint8_t pos );
+
+  // Check if there is any series containing the given position
+  bool hasSeries( uint8_t pos ) const;
+  bool hasSeries( bool isWhite, uint8_t pos ) const;
+
+  // [0..9,        10..20,           21, 31]
+  // ^               ^               ^
+  // 10 byte ring    11 byte puck    11 byte puck
+  //  0xff => inexistant ring
+  std::array<uint8_t, 32> m_board;
+};
+
+#endif  // BOARD_H_

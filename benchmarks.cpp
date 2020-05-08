@@ -52,17 +52,16 @@ auto generateRandomStartingBoard() -> Board
   return b;
 }
 
-auto generateRandomStartingBoard2() -> Board
+auto generateRandomStartingBoard2() -> Board2
 {
-  const unsigned seed =
-      std::chrono::system_clock::now().time_since_epoch().count();
-  std::shuffle( begin( rand_num ), end( rand_num ),
-                std::default_random_engine( seed ) );
-
-  Board b;
-  for( int i = 0; i < Board::num_ring * 2; ++i )
+  Board2 b;
+  for( int i = 0; i < 10; ++i )
   {
-    b.setRing( i % 2 == 0, rand_num[i] );
+    int randIdx = rand() % Board::num_pos;
+    if( !b.hasRing( randIdx ) )
+    {
+      b.setRing( i, randIdx );
+    }
   }
 
   return b;
@@ -106,6 +105,54 @@ auto generateRandomBoard() -> Board
   for( size_t i = 0; i < ringPos.size(); ++i )
   {
     b.setRing( i % 2 == 0, ringPos[i] );
+  }
+
+  for( size_t i = 0; i < puckPos.size(); ++i )
+  {
+    b.setPuck( i % 2 == 0, puckPos[i] );
+  }
+
+  return b;
+}
+
+auto generateRandomBoard2() -> Board2
+{
+  // generate random number of ring
+  const int numBlackRing = rand() % 5 + 1;
+  const int numWhiteRing = rand() % 5 + 1;
+  std::vector<int> ringPos( numBlackRing + numWhiteRing );
+  for( auto& p : ringPos )
+  {
+    int randIdx = rand() % Board::num_pos;
+    while( std::find( ringPos.begin(), ringPos.end(), randIdx ) !=
+           ringPos.end() )
+    {
+      randIdx = rand() % Board::num_pos;
+    }
+
+    p = randIdx;
+  }
+
+  // generate random number of puck
+  const int numPuck = rand() % 50;  // [0- 50[ puck
+  std::vector<int> puckPos( numPuck );
+  for( auto& p : puckPos )
+  {
+    int randIdx = rand() % Board::num_pos;
+    while(
+        std::find( puckPos.begin(), puckPos.end(), randIdx ) != puckPos.end() ||
+        std::find( ringPos.begin(), ringPos.end(), randIdx ) != ringPos.end() )
+    {
+      randIdx = rand() % Board::num_pos;
+    }
+
+    p = randIdx;
+  }
+
+  Board2 b;
+  for( size_t i = 0; i < ringPos.size(); ++i )
+  {
+    b.setRing( i, ringPos[i] );
   }
 
   for( size_t i = 0; i < puckPos.size(); ++i )
@@ -210,6 +257,15 @@ static void BM_Evaluate( benchmark::State& state )
   }
 }
 
+static void BM_Evaluate2( benchmark::State& state )
+{
+  Board2 b = generateRandomBoard2();
+  for( auto _ : state )
+  {
+    static_cast<void>( ai::evaluate2( b, true ) );
+  }
+}
+
 static void BM_GetSuccessors( benchmark::State& state )
 {
   Board b = generateRandomBoard();
@@ -220,6 +276,8 @@ static void BM_GetSuccessors( benchmark::State& state )
 }
 
 BENCHMARK( BM_Evaluate );
+BENCHMARK( BM_Evaluate2 );
+//BENCHMARK( BM_count_toggled_bit );
 BENCHMARK( BM_GenerateRandomStartingBoard );
 BENCHMARK( BM_GenerateRandomStartingBoard2 );
 BENCHMARK( BM_GenerateRandomBoard );

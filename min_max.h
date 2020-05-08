@@ -14,6 +14,8 @@ namespace ai
 
   int evaluate( Board& board, bool isWhite );
 
+  int evaluate2( const Board2& board, bool isWhite);
+
 }  // namespace ai
 
 #endif  // MIN_MAX_H_

@@ -2,6 +2,7 @@
 
 #include <min_max.h>
 
+#include <bitset>
 #include <cstdint>
 #include <vector>
 #include <stack>
@@ -14,10 +15,10 @@ namespace ai
 {
   void getNextMoveDFS( const Board& board, bool isWhite )
   {
-    constexpr size_t DEPTH = 4;
-    std::vector<std::vector<Board>> to_visit {{board}};
-    to_visit.reserve(DEPTH);
-    std::vector<size_t> index_stack{ 0 };
+    constexpr size_t DEPTH = 5;
+    std::vector<std::vector<Board>> to_visit{{board}};
+    to_visit.reserve( DEPTH );
+    std::vector<size_t> index_stack{0};
     size_t current_depth = 0;
 
     while( !to_visit.empty() )
@@ -31,12 +32,12 @@ namespace ai
         Board& b = to_visit[current_depth][index];
         if( current_depth == DEPTH )
         {
-          evaluate(b, DEPTH % 2 == 0 ? !isWhite : isWhite);
+          // count_toggled_bit( b, DEPTH % 2 == 0 ? !isWhite : isWhite );
           continue;
         }
 
-        to_visit.push_back({});
-        to_visit.back().reserve(100);
+        to_visit.push_back( {} );
+        to_visit.back().reserve( 100 );
 
         // Get successors for a given board
         for( short i = 0; i < Board::num_pos; ++i )
@@ -56,8 +57,7 @@ namespace ai
 
             const short nextJ = j + size + 1;
             bool hasReachedPuck = false;
-            std::array<short, 9> puckPos = { -1, -1, -1, -1, -1,
-                                             -1, -1, -1, -1 };
+            std::array<short, 9> puckPos = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
             int puckIdx = 0;
             for( short k = 0; k < size; ++k )
             {
@@ -71,8 +71,8 @@ namespace ai
               }
 
               to_visit.back().push_back( b2 );
-              to_visit.back().back().setRing( isWhite,
-                                     Moves::possibleMoves[i][j + k + 1] );
+              to_visit.back().back().setRing(
+                  isWhite, Moves::possibleMoves[i][j + k + 1] );
 
               if( hasReachedPuck )
               {
@@ -105,7 +105,7 @@ namespace ai
   // BFS style tree creation
   void getNextMove( const Board& board, bool isWhite )
   {
-    std::vector<Board> boards{ board };
+    std::vector<Board> boards{board};
 
     int32_t depth = 0;
     int32_t range_begin = 0;
@@ -135,8 +135,7 @@ namespace ai
 
             const short nextJ = j + size + 1;
             bool hasReachedPuck = false;
-            std::array<short, 9> puckPos = { -1, -1, -1, -1, -1,
-                                             -1, -1, -1, -1 };
+            std::array<short, 9> puckPos = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
             int puckIdx = 0;
             for( short k = 0; k < size; ++k )
             {
@@ -177,7 +176,7 @@ namespace ai
       ++depth;
       isWhite = !isWhite;
     }
-    printf("%d", boards.size());
+    printf( "%d", boards.size() );
   }
 
   void getSuccessors( const Board& board, const bool isWhite ) {}
@@ -191,16 +190,40 @@ namespace ai
     for( int i = 0; i < Board::num_pos; ++i )
     {
       if( b.hasRing( isWhite, i ) )
-        reinterpret_cast<int64_t>(&b) -= 10;
+        value -= 10;
       else if( b.hasRing( i ) )
-        reinterpret_cast<int64_t>(&b) += 10;
+        value += 10;
       else if( b.hasPuck( isWhite, i ) )
-        reinterpret_cast<int64_t>(&b) += 1;
+        value += 1;
       else if( b.hasPuck( i ) )
-        reinterpret_cast<int64_t>(&b) -= 1;
+        value -= 1;
     }
 
     return 0;
+  }
+
+  int evaluate2( const Board2& board, bool isWhite )
+  {
+    int value = 0;
+
+    // Count rings
+    const int offset_ring = isWhite ? 0 : 5;
+    value += board.m_board[0 + offset_ring] == 0xff ? 10 : 0;
+    value += board.m_board[1 + offset_ring] == 0xff ? 10 : 0;
+    value += board.m_board[2 + offset_ring] == 0xff ? 10 : 0;
+    value += board.m_board[3 + offset_ring] == 0xff ? 10 : 0;
+    value += board.m_board[4 + offset_ring] == 0xff ? 10 : 0;
+
+    // Count pucks
+    const int offset = isWhite ? 0 : 11;
+    // 8 byte + 3 byte
+    value += __builtin_popcountl(
+        *reinterpret_cast<const uint64_t*>( &board.m_board[10 + offset] ) );
+    value += __builtin_popcount(
+        ( *reinterpret_cast<const int32_t*>( &board.m_board[18 + offset] ) ) &
+        0xfff0 );
+
+    return value;
   }
 }  // namespace ai
 

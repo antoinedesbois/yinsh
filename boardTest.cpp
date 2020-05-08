@@ -18,7 +18,7 @@ namespace
 
 TEST( emptyBoard, shouldBeEmpty )
 {
-  Board board;
+  Board2 board;
   for( int i = 0; i < Board::num_pos; ++i )
   {
     EXPECT_FALSE( board.hasPuck( i ) );
@@ -47,11 +47,11 @@ TEST( boardString, asExpected )
 
 TEST( boardCopy, asExpected )
 {
-  Board b1;
+  Board2 b1;
   b1.setRing( defaultColor, 13 );
   b1.setPuck( defaultColor, 60 );
 
-  const Board b2( b1 );
+  const Board2 b2( b1 );
   for( int i = 0; i < Board::num_pos; ++i )
   {
     EXPECT_TRUE( b1.hasRing( i ) == b2.hasRing( i ) );
@@ -61,10 +61,10 @@ TEST( boardCopy, asExpected )
 
 TEST( boardOperatorEqual, asExpected )
 {
-  Board b1;
+  Board2 b1;
   b1.setRing( defaultColor, 13 );
   b1.setPuck( defaultColor, 60 );
-  Board b2( b1 );
+  Board2 b2( b1 );
 
   EXPECT_TRUE( b1 == b2 );
   b2.setRing( defaultColor, 10 );
@@ -74,7 +74,7 @@ TEST( boardOperatorEqual, asExpected )
 
 TEST( setEvenPuck, asExpected )
 {
-  Board b;
+  Board2 b;
   b.setPuck( defaultColor, 0 );
   EXPECT_TRUE( b.hasPuck( defaultColor, 0 ) );
 
@@ -86,7 +86,7 @@ TEST( setEvenPuck, asExpected )
 
 TEST( setOddPuck, asExpected )
 {
-  Board b;
+  Board2 b;
   b.setPuck( defaultColor, 1 );
   EXPECT_TRUE( b.hasPuck( defaultColor, 1 ) );
 
@@ -99,7 +99,7 @@ TEST( setOddPuck, asExpected )
 
 TEST( setEvenAndOddPuckSameByte, setGetPuck_AsExpected )
 {
-  Board b;
+  Board2 b;
   b.setPuck( defaultColor, 1 );
   b.setPuck( defaultColor, 0 );
   EXPECT_TRUE( b.hasPuck( defaultColor, 1 ) );
@@ -114,7 +114,7 @@ TEST( setEvenAndOddPuckSameByte, setGetPuck_AsExpected )
 
 TEST( setPuckOnPuck, shouldCrash )
 {
-  Board b;
+  Board2 b;
   b.setPuck( defaultColor, 0 );
 #ifndef NDEBUG
   EXPECT_DEATH( b.setPuck( defaultColor, 0 ), "" );
@@ -126,7 +126,7 @@ TEST( setPuckOnPuck, shouldCrash )
 
 TEST( setPuckOnRing, shouldCrash )
 {
-  Board b;
+  Board2 b;
   b.setRing( defaultColor, 0 );
 #ifndef NDEBUG
   EXPECT_DEATH( b.setPuck( defaultColor, 0 ), "" );
@@ -138,12 +138,13 @@ TEST( setPuckOnRing, shouldCrash )
 
 TEST( setEvenRing, asExpected )
 {
-  Board b;
-  b.setRing( defaultColor, 0 );
-  EXPECT_TRUE( b.hasRing( defaultColor, 0 ) );
+  Board2 b;
+  b.setRing( 0, 5 );
+  EXPECT_TRUE( b.hasRing( true, 5 ) );
 
-  for( int i = 1; i < Board::num_pos; ++i )
+  for( int i = 0; i < Board::num_pos; ++i )
   {
+    if (i == 5) continue;
     EXPECT_FALSE( b.hasRing( i ) );
   }
 }
@@ -151,9 +152,9 @@ TEST( setEvenRing, asExpected )
 TEST( setOddRing, asExpected )
 {
   const int oddPos = 7;
-  Board b;
-  b.setRing( defaultColor, oddPos );
-  EXPECT_TRUE( b.hasRing( defaultColor, oddPos ) );
+  Board2 b;
+  b.setRing( 0, oddPos );
+  EXPECT_TRUE( b.hasRing( true, oddPos ) );
 
   for( int i = 1; i < Board::num_pos; ++i )
   {
@@ -164,12 +165,12 @@ TEST( setOddRing, asExpected )
 
 TEST( setRingWithColor, asExpected )
 {
-  Board b;
-  b.setRing( defaultColor, 0 );
-  b.setRing( secondColor, 1 );
+  Board2 b;
+  b.setRing( 0, 0 );
+  b.setRing( 5, 1 );
 
-  EXPECT_TRUE( b.hasRing( defaultColor, 0 ) );
-  EXPECT_TRUE( b.hasRing( secondColor, 1 ) );
+  EXPECT_TRUE( b.hasRing( true, 0 ) );
+  EXPECT_TRUE( b.hasRing( false, 1 ) );
 
   for( int i = 2; i < Board::num_pos; ++i )
   {
@@ -181,11 +182,11 @@ TEST( setEvenAndOddRingSameByte, asExpected )
 {
   const int evenPos = 72;
   const int oddPos = 73;
-  Board b;
-  b.setRing( defaultColor, evenPos );
-  b.setRing( defaultColor, oddPos );
-  EXPECT_TRUE( b.hasRing( defaultColor, evenPos ) );
-  EXPECT_TRUE( b.hasRing( defaultColor, oddPos ) );
+  Board2 b;
+  b.setRing( 0, evenPos );
+  b.setRing( 1, oddPos );
+  EXPECT_TRUE( b.hasRing( true, evenPos ) );
+  EXPECT_TRUE( b.hasRing( true, oddPos ) );
 
   for( int i = 0; i < Board::num_pos; ++i )
   {
@@ -196,9 +197,9 @@ TEST( setEvenAndOddRingSameByte, asExpected )
 
 TEST( removeRingOdd, asExpected )
 {
-  Board b;
-  b.setRing( defaultColor, 0 );
-  EXPECT_TRUE( b.hasRing( defaultColor, 0 ) );
+  Board2 b;
+  b.setRing( 0, 0 );
+  EXPECT_TRUE( b.hasRing( true, 0 ) );
   b.removeRing( 0 );
   EXPECT_FALSE( b.hasRing( 0 ) );
 }
@@ -273,7 +274,7 @@ TEST( hasSeriesWhenThereIsOne, asExpected )
 
 TEST( flipPuck, asExpected )
 {
-  Board b;
+  Board2 b;
   b.setPuck( defaultColor, 10 );
   b.flipPuck( 10 );
   EXPECT_TRUE( b.hasPuck( secondColor, 10 ) );
