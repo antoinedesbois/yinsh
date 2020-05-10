@@ -102,6 +102,97 @@ namespace ai
     }
   }
 
+  void getNextMoveDFS2( const Board2& board, bool isWhite )
+  {
+    constexpr size_t DEPTH = 5;
+    std::vector<std::vector<Board2>> to_visit{{board}};
+    to_visit.reserve( DEPTH );
+    std::vector<size_t> index_stack{0};
+    size_t current_depth = 0;
+
+    while( !to_visit.empty() )
+    {
+      /////////////////
+      // Compute successors for current depth, current element
+      size_t index = index_stack.back();
+      index_stack.pop_back();
+      for( ; index < to_visit[current_depth].size(); ++index )
+      {
+        Board2& b = to_visit[current_depth][index];
+        if( current_depth == DEPTH )
+        {
+          evaluate2( b, DEPTH % 2 == 0 ? !isWhite : isWhite );
+          continue;
+        }
+
+        to_visit.push_back( {} );
+        to_visit.back().reserve( 100 );
+
+        // Get successors for a given board
+        const int offset = isWhite ? 0 : 5;
+        for( int i = 0 + offset; i < 5 + offset; ++i )
+        {
+          const uint8_t ring_pos = b.m_board[i];
+          short j = 0;
+
+          // for every move of a given ring, we can safely place a puck and
+          // remove the ring from it's current position
+          Board2 b2 = b;
+          b2.removeRing( i );
+          b2.setPuck( isWhite, ring_pos );
+          while( j < 32 )
+          {
+            const short size = Moves::possibleMoves[ring_pos][j];
+            if( size < 1 ) break;
+
+            const short nextJ = j + size + 1;
+            bool hasReachedPuck = false;
+            std::array<short, 9> puckPos = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
+            int puckIdx = 0;
+            for( short k = 0; k < size; ++k )
+            {
+              if( b.hasRing( Moves::possibleMoves[ring_pos][j + k + 1] ) )
+                break;
+              if( b.hasPuck( Moves::possibleMoves[ring_pos][j + k + 1] ) )
+              {
+                hasReachedPuck = true;
+                puckPos[puckIdx] = Moves::possibleMoves[ring_pos][j + k + 1];
+                puckIdx++;
+                continue;
+              }
+
+              to_visit.back().push_back( b2 );
+              to_visit.back().back().setRing(
+                  isWhite, Moves::possibleMoves[ring_pos][j + k + 1] );
+
+              if( hasReachedPuck )
+              {
+                for( short p : puckPos )
+                {
+                  if( p == -1 ) break;
+                  to_visit.back().back().flipPuck( p );
+                }
+
+                // TODO handle series removal search
+                break;
+              }
+            }
+
+            j = nextJ;
+          }
+        }
+
+        index_stack.push_back( index + 1 );
+        index = 0;
+        ++current_depth;
+      }
+
+      to_visit.pop_back();
+
+      --current_depth;
+    }
+  }  // namespace ai
+
   // BFS style tree creation
   void getNextMove( const Board& board, bool isWhite )
   {
@@ -202,7 +293,7 @@ namespace ai
     return 0;
   }
 
-  int evaluate2( const Board2& board, bool isWhite )
+  int evaluate2( const Board2& board, const bool isWhite )
   {
     int value = 0;
 
@@ -219,9 +310,9 @@ namespace ai
     // 8 byte + 3 byte
     value += __builtin_popcountl(
         *reinterpret_cast<const uint64_t*>( &board.m_board[10 + offset] ) );
-    value += __builtin_popcount(
+    value += __builtin_popcount( (
         ( *reinterpret_cast<const uint32_t*>( &board.m_board[18 + offset] ) ) &
-        0xffffff00 );
+        0x00ffffff ) );
 
     return value;
   }

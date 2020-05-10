@@ -27,12 +27,27 @@ namespace
 
     return b;
   }
+
+  auto generateRandomStartingBoard2() -> Board2
+  {
+    Board2 b;
+    for( int i = 0; i < 10; ++i )
+    {
+      int randIdx = rand() % Board::num_pos;
+      if( !b.hasRing( randIdx ) )
+      {
+        b.setRing( i, randIdx );
+      }
+    }
+
+    return b;
+  }
 }  // namespace
 
 int main()
 {
-  //ai::getNextMoveDFS(generateRandomStartingBoard(), true);
-  //ai::getNextMove(generateRandomStartingBoard(), true);
-  
+  ai::getNextMoveDFS2( generateRandomStartingBoard2(), true );
+  //ai::getNextMoveDFS( generateRandomStartingBoard(), true );
+
   return 0;
 }

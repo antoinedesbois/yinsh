@@ -10,6 +10,8 @@ namespace ai
 
   void getNextMoveDFS( const Board& board, bool isWhite);
 
+  void getNextMoveDFS2( const Board2& board, bool isWhite);
+
   void getSuccessors( const Board& board, bool isWhite );
 
   int evaluate( Board& board, bool isWhite );
